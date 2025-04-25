@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   ScrollView,
@@ -8,13 +9,16 @@ import {
 import { Button, Card, Text } from "react-native-paper";
 
 const CustomCard = () => {
+  const router = useRouter();
+
+
   return (
     <TouchableWithoutFeedback>
       <Card style={styles.card}>
         <Card.Title title="Card Title" />
         <Card.Cover source={{ uri: "https://picsum.photos/700" }} />
         <Card.Actions>
-          <Button>Ver</Button>
+          <Button onPress={ () => router.push("/home/explorer/route/routeList")}>Ver</Button>
         </Card.Actions>
       </Card>
     </TouchableWithoutFeedback>

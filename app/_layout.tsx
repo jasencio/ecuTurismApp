@@ -25,6 +25,9 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="home/appointment/detail" options={{ title: "Detalle Agendamiento" }} />
+          <Stack.Screen name="home/explorer/route/routeList" options={{ title: "Rutas" }} />
+          <Stack.Screen name="home/explorer/route/routeDetail" options={{ title: "Ruta" }} />
         </Stack>
       </Provider>
     </PaperProvider>

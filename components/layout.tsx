@@ -10,9 +10,10 @@ import { Appbar, useTheme, Drawer } from "react-native-paper";
 
 export interface Props {
   children: ReactNode;
+  isHeaderAvailable?: boolean;
 }
 
-const Layout: React.FC<Props> = ({ children }) => {
+const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
   const theme = useTheme();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [active, setActive] = useState("home");
@@ -26,20 +27,24 @@ const Layout: React.FC<Props> = ({ children }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       {/* Detects outside taps, but allows scrolling inside children */}
       <TouchableWithoutFeedback onPress={handleOutsidePress} accessible={false}>
         <View style={styles.container}>
           {/* Header with Drawer Toggle */}
-          <Appbar.Header>
-            <Appbar.Action icon="menu" onPress={() => setIsDrawerOpen(!isDrawerOpen)} />
-            <Appbar.Content title="Explore Nature" />
-          </Appbar.Header>
-
+          {isHeaderAvailable && (
+            <Appbar.Header>
+              <Appbar.Action
+                icon="menu"
+                onPress={() => setIsDrawerOpen(!isDrawerOpen)}
+              />
+              <Appbar.Content title="Explore Nature" />
+            </Appbar.Header>
+          )}
           {/* Ensures children can scroll while keeping touch detection */}
-          <View style={styles.content}>
-            {children}
-          </View>
+          <View style={styles.content}>{children}</View>
 
           {/* Overlay to detect clicks outside */}
           {isDrawerOpen && <View style={styles.overlay} />}
@@ -52,7 +57,10 @@ const Layout: React.FC<Props> = ({ children }) => {
                   label="Usuarios"
                   icon="account-multiple"
                   active={active === "users"}
-                  onPress={() => { setActive("users"); setIsDrawerOpen(false); }}
+                  onPress={() => {
+                    setActive("users");
+                    setIsDrawerOpen(false);
+                  }}
                 />
               </Drawer.Section>
               <Drawer.Section title="Supervisor">
@@ -60,19 +68,28 @@ const Layout: React.FC<Props> = ({ children }) => {
                   label="Rutas"
                   icon="compass"
                   active={active === "routes"}
-                  onPress={() => { setActive("routes"); setIsDrawerOpen(false); }}
+                  onPress={() => {
+                    setActive("routes");
+                    setIsDrawerOpen(false);
+                  }}
                 />
                 <Drawer.Item
                   label="Guias"
                   icon="account-multiple"
                   active={active === "guides"}
-                  onPress={() => { setActive("guides"); setIsDrawerOpen(false); }}
+                  onPress={() => {
+                    setActive("guides");
+                    setIsDrawerOpen(false);
+                  }}
                 />
                 <Drawer.Item
                   label="Agendamientos"
                   icon="calendar-blank-multiple"
                   active={active === "scheduling"}
-                  onPress={() => { setActive("scheduling"); setIsDrawerOpen(false); }}
+                  onPress={() => {
+                    setActive("scheduling");
+                    setIsDrawerOpen(false);
+                  }}
                 />
               </Drawer.Section>
               <Drawer.Section title="Guia">
@@ -80,7 +97,10 @@ const Layout: React.FC<Props> = ({ children }) => {
                   label="Asignaciones"
                   icon="calendar-alert"
                   active={active === "assignments"}
-                  onPress={() => { setActive("assignments"); setIsDrawerOpen(false); }}
+                  onPress={() => {
+                    setActive("assignments");
+                    setIsDrawerOpen(false);
+                  }}
                 />
               </Drawer.Section>
             </View>
