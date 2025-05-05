@@ -15,7 +15,7 @@ const CustomCard = () => {
   return (
     <TouchableWithoutFeedback>
       <Card style={styles.card}>
-        <Card.Title title="Card Title" />
+        <Card.Title title="Bike Park" />
         <Card.Cover source={{ uri: "https://picsum.photos/700" }} />
         <Card.Actions>
           <Button onPress={ () => router.push("/home/explorer/route/routeList")}>Ver</Button>

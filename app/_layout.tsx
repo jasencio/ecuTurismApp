@@ -18,14 +18,15 @@ export default function RootLayout() {
       <Provider store={store}>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="home" options={{ headerShown: false }} />
+          <Stack.Screen name="home" options={{ headerShown: false, title: "Inicio"}} />
           <Stack.Screen name="signup" options={{ headerShown: false }} />
           <Stack.Screen
             name="forgotpassword"
             options={{ headerShown: false }}
           />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="home/appointment/detail" options={{ title: "Detalle Agendamiento" }} />
+          <Stack.Screen name="home/explorer/appointment/appointmentCreate" options={{ title: "Agendamiento" }} />
+          <Stack.Screen name="home/explorer/appointment/appointmentDetail" options={{ title: "Detalle Agendamiento" }} />
           <Stack.Screen name="home/explorer/route/routeList" options={{ title: "Rutas" }} />
           <Stack.Screen name="home/explorer/route/routeDetail" options={{ title: "Ruta" }} />
         </Stack>

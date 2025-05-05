@@ -3,9 +3,8 @@ import Appoinments from "@/screens/appointments";
 import Locations from "@/screens/locations";
 import Profile from "@/screens/profile";
 import React from "react";
-import {
-  BottomNavigation,
-} from "react-native-paper";
+import { BottomNavigation } from "react-native-paper";
+import { white } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
 const HomePage = () => {
   const [index, setIndex] = React.useState(1);
@@ -37,7 +36,7 @@ const HomePage = () => {
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
-        barStyle={{ height: 50 }}
+        barStyle={{ height: 50, backgroundColor: "white" }}
       />
     </Layout>
   );

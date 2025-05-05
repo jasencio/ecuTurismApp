@@ -1,12 +1,17 @@
-import React from "react";
-import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+// screens/DetailScreen.tsx
+import CustomSafeAreaView from "@/components/CustomSafeAreaView";
+import { useNavigation, useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import {
-  Avatar,
-  Card,
-  Text,
-} from "react-native-paper";
-import { useRouter } from "expo-router";
-
+  View,
+  Image,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { Text, Card, Button, List, Title, Avatar } from "react-native-paper";
+const { height } = Dimensions.get("window");
 interface CustomCardProps {
   title: string;
   subtitle: string;
@@ -17,7 +22,12 @@ const CustomCardRoute: React.FC<CustomCardProps> = ({ title, subtitle }) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        router.navigate ("/home/explorer/route/routeDetail");
+        router.navigate(
+          {
+            pathname: "/home/explorer/route/routeDetail",
+            params: { title },
+          }
+        );
       }}
     >
       <Card.Title
@@ -34,42 +44,170 @@ const CustomCardRoute: React.FC<CustomCardProps> = ({ title, subtitle }) => {
   );
 };
 
-const RouteList = () => {
-  return (
-    <View style={styles.container}>
-      <Text variant="titleMedium" style={styles.tile}>
-        Rutas de Senderismo
-      </Text>
+const DetailScreen = () => {
+  const navigation = useNavigation();
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {[1, 2, 3].map((key) => {
-          return (
-            <CustomCardRoute
-              key={key}
-              title={`Sendero ${key}`}
-              subtitle="Detalle"
-            ></CustomCardRoute>
-          );
-        })}
+  useEffect(() => {
+    navigation.setOptions({ title: "Bike Park" });
+  }, [navigation]);
+
+  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
+  const address = "Av. XYZ y Av. Abc";
+
+  const data = {
+    timeOpenWeek: "08:00",
+    timeCloseWeek: "17:00",
+    timeOpenSaturday: "09:00",
+    timeCloseSaturday: "14:00",
+    timeOpenSunday: "Closed",
+    timeCloseSunday: "Closed",
+    daysWeek: "Monday,Tuesday,Wednesday,Thursday,Friday",
+    daysWeekDisabled: "Sunday",
+  };
+
+  const schedule = [
+    {
+      days: "Monday - Friday",
+      open: data.timeOpenWeek,
+      close: data.timeCloseWeek,
+    },
+    {
+      days: "Saturday",
+      open: data.timeOpenSaturday,
+      close: data.timeCloseSaturday,
+    },
+    {
+      days: "Sunday",
+      open: data.timeOpenSunday,
+      close: data.timeCloseSunday,
+    },
+  ];
+
+  return (
+    <CustomSafeAreaView>
+      <Image
+        source={{ uri: imageUrl }}
+        style={styles.image}
+        resizeMode="cover"
+      />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleSmall" style={styles.title}>
+              Dirección
+            </Text>
+            <Text variant="bodyMedium" style={styles.text}>
+              {address}
+            </Text>
+          </Card.Content>
+        </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.title}>
+              Horario
+            </Text>
+            {schedule.map((item, index) => (
+              <View key={index} style={styles.row}>
+                <View style={styles.dayColumn}>
+                  <Text variant="bodySmall" style={styles.dayText}>
+                    {item.days}
+                  </Text>
+                </View>
+                <View style={styles.timeColumn}>
+                  {item.open === "Closed" ? (
+                    <Text variant="bodyMedium" style={styles.closedText}>
+                      Closed
+                    </Text>
+                  ) : (
+                    <Text variant="bodyMedium" style={styles.timeText}>
+                      {item.open} - {item.close}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </Card.Content>
+        </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleSmall" style={styles.title}>
+              Rutas
+            </Text>
+            {[1, 2, 3].map((key) => {
+              return (
+                <CustomCardRoute
+                  key={key}
+                  title={`Sendero ${key}`}
+                  subtitle="Detalle"
+                ></CustomCardRoute>
+              );
+            })}
+          </Card.Content>
+        </Card>
       </ScrollView>
-    </View>
+    </CustomSafeAreaView>
   );
 };
+
+export default DetailScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#fff",
   },
-  tile: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
+  image: {
+    height: height * 0.2, // 40% of the screen height
+    width: "90%",
+    margin: 20,
   },
   content: {
-    padding: 16,
-    paddingTop: 0,
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+  },
+  card: {
+    marginTop: 10,
+    borderRadius: 12,
+    elevation: 4,
+  },
+  title: {
+    fontWeight: "bold",
+  },
+  text: {
+    marginBottom: 12,
+  },
+  button: {
+    borderRadius: 6,
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+  },
+  dayColumn: {
+    flex: 1,
+  },
+  timeColumn: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  dayText: {
+    fontWeight: "600",
+  },
+  timeText: {
+    color: "#4caf50",
+  },
+  closedText: {
+    color: "#f44336",
+    fontWeight: "bold",
   },
 });
-
-export default RouteList;

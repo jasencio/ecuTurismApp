@@ -215,7 +215,7 @@ export default function Profile() {
         //disabled={loading}
       >
         {/* {isRegistered ? "Actualizar" : "Registrar"} */}
-        "Registrar"
+        Registrar
       </Button>
     </ScrollView>
   );

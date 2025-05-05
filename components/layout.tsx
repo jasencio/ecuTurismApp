@@ -1,20 +1,19 @@
 import React, { ReactNode, useState } from "react";
 import {
   StyleSheet,
-  SafeAreaView,
   View,
   TouchableWithoutFeedback,
   Keyboard,
+  Platform,
 } from "react-native";
-import { Appbar, useTheme, Drawer } from "react-native-paper";
-
+import { Appbar, Drawer } from "react-native-paper";
+import CustomSafeAreaView from "./CustomSafeAreaView";
 export interface Props {
   children: ReactNode;
   isHeaderAvailable?: boolean;
 }
 
 const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
-  const theme = useTheme();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [active, setActive] = useState("home");
 
@@ -27,15 +26,13 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
+    <CustomSafeAreaView>
       {/* Detects outside taps, but allows scrolling inside children */}
       <TouchableWithoutFeedback onPress={handleOutsidePress} accessible={false}>
         <View style={styles.container}>
           {/* Header with Drawer Toggle */}
           {isHeaderAvailable && (
-            <Appbar.Header>
+            <Appbar.Header statusBarHeight={Platform.OS === "ios" ? 0 : undefined}>
               <Appbar.Action
                 icon="menu"
                 onPress={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -107,7 +104,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
           )}
         </View>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 
