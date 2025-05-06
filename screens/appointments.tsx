@@ -47,7 +47,7 @@ const CustomCard = () => {
 const Appoinments = () => {
   return (
     <View style={styles.container}>
-      <Text variant="titleMedium" style={styles.tile}>
+      <Text variant="titleMedium" style={styles.title}>
         Agendamientos
       </Text>
 
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tile: {
+  title: {
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 16,

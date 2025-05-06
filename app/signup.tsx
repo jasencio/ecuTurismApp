@@ -9,6 +9,7 @@ import {
 } from "react-native-paper";
 
 const SignUpScreen = () => {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,8 +17,7 @@ const SignUpScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const router = useRouter();
-
+  
   const handleSignUp = () => {
     if (!acceptTerms) {
       alert("Please accept the Terms of Use & Privacy Policy");

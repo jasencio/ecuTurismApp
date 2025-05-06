@@ -8,12 +8,17 @@ import {
 } from "react-native";
 import { Appbar, Drawer } from "react-native-paper";
 import CustomSafeAreaView from "./CustomSafeAreaView";
+import { useRouter } from "expo-router";
+// import { usePathname } from "expo-router";
+// import { useEffect } from "react";
 export interface Props {
   children: ReactNode;
   isHeaderAvailable?: boolean;
 }
 
 const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
+  const router = useRouter();
+  // const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [active, setActive] = useState("home");
 
@@ -25,6 +30,15 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
     Keyboard.dismiss(); // Hide keyboard if open
   };
 
+  // useEffect(() => {
+  //   if (pathname.includes("/users")) setActive("users");
+  //   else if (pathname.includes("/routes")) setActive("routes");
+  //   else if (pathname.includes("/guides")) setActive("guides");
+  //   else if (pathname.includes("/scheduling")) setActive("scheduling");
+  //   else if (pathname.includes("/assignmentList")) setActive("assignments");
+  //   else setActive("home"); // Default
+  // }, [pathname]);
+
   return (
     <CustomSafeAreaView>
       {/* Detects outside taps, but allows scrolling inside children */}
@@ -32,7 +46,9 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
         <View style={styles.container}>
           {/* Header with Drawer Toggle */}
           {isHeaderAvailable && (
-            <Appbar.Header statusBarHeight={Platform.OS === "ios" ? 0 : undefined}>
+            <Appbar.Header
+              statusBarHeight={Platform.OS === "ios" ? 0 : undefined}
+            >
               <Appbar.Action
                 icon="menu"
                 onPress={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -55,7 +71,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   icon="account-multiple"
                   active={active === "users"}
                   onPress={() => {
-                    setActive("users");
+                    //setActive("users");
                     setIsDrawerOpen(false);
                   }}
                 />
@@ -66,7 +82,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   icon="compass"
                   active={active === "routes"}
                   onPress={() => {
-                    setActive("routes");
+                    //setActive("routes");
                     setIsDrawerOpen(false);
                   }}
                 />
@@ -75,7 +91,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   icon="account-multiple"
                   active={active === "guides"}
                   onPress={() => {
-                    setActive("guides");
+                    //setActive("guides");
                     setIsDrawerOpen(false);
                   }}
                 />
@@ -84,7 +100,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   icon="calendar-blank-multiple"
                   active={active === "scheduling"}
                   onPress={() => {
-                    setActive("scheduling");
+                    //setActive("scheduling");
                     setIsDrawerOpen(false);
                   }}
                 />
@@ -95,8 +111,9 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   icon="calendar-alert"
                   active={active === "assignments"}
                   onPress={() => {
-                    setActive("assignments");
+                    //setActive("assignments");
                     setIsDrawerOpen(false);
+                    router.push("/home/guides/assignmentList");
                   }}
                 />
               </Drawer.Section>

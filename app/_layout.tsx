@@ -11,6 +11,7 @@ export default function RootLayout() {
       ...DefaultTheme.colors,
       primary: '#6200ee',
       accent: '#03dac4',
+      background: "white"
     },
   };
   return (
@@ -25,10 +26,15 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/*Explorer */}
           <Stack.Screen name="home/explorer/appointment/appointmentCreate" options={{ title: "Agendamiento" }} />
           <Stack.Screen name="home/explorer/appointment/appointmentDetail" options={{ title: "Detalle Agendamiento" }} />
           <Stack.Screen name="home/explorer/route/routeList" options={{ title: "Rutas" }} />
           <Stack.Screen name="home/explorer/route/routeDetail" options={{ title: "Ruta" }} />
+
+           {/*Guide */}
+           <Stack.Screen name="home/guides/assignmentList" options={{ title: "Asignaciones" }} />
+
         </Stack>
       </Provider>
     </PaperProvider>

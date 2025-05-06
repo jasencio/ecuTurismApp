@@ -61,7 +61,7 @@ export default function Profile() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="titleMedium" style={styles.tile}>
+      <Text variant="titleMedium" style={styles.title}>
         Perfil
       </Text>
       {/* Name */}
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 20,
   },
-  tile: {
+  title: {
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 16,
