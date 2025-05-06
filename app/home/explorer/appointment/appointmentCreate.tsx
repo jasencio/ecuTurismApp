@@ -1,6 +1,6 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import CustomCalendar from "@/components/CustomCalendar";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Image, Dimensions, StyleSheet, ScrollView } from "react-native";
 import { Text, Card, Divider, Button } from "react-native-paper";
@@ -10,13 +10,10 @@ const { height } = Dimensions.get("window");
 
 export default function AppointmentCreate() {
   const navigation = useNavigation();
-
+  const router = useRouter();
   const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
-
   const [time, setTime] = useState<string | undefined>();
-  const [show, setShow] = useState(false);
   const [visitors, setVisitors] = useState<string | undefined>(undefined);
-  const [showVisitors, setShowVisitors] = useState(false);
 
   const data = {
     location: "Bike Park",
@@ -27,6 +24,7 @@ export default function AppointmentCreate() {
     minutes: 120,
     hardness: "Moderado",
   };
+  
   const { description, minutes, hardness, location, route, address } = data;
 
   useEffect(() => {
@@ -144,10 +142,10 @@ export default function AppointmentCreate() {
                 },
               ]}
             />
-                        <Button
+            <Button
               mode="contained"
               onPress={() => {
-                
+                router.push("/home/explorer/appointment/appointmentDetail");
               }}
               style={styles.button}
             >
@@ -162,7 +160,7 @@ export default function AppointmentCreate() {
 
 const styles = StyleSheet.create({
   image: {
-    height: height * 0.2, // 40% of the screen height
+    height: height * 0.2,
     width: "100%",
   },
   content: {

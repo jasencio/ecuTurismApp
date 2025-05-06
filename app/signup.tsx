@@ -6,7 +6,6 @@ import {
   TextInput,
   Button,
   Checkbox,
-  IconButton,
 } from "react-native-paper";
 
 const SignUpScreen = () => {
