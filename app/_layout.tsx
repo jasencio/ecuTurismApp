@@ -35,6 +35,9 @@ export default function RootLayout() {
            {/*Guide */}
            <Stack.Screen name="home/guides/assignmentList" options={{ title: "Asignaciones" }} />
 
+            {/*Admin */}
+            <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
+
         </Stack>
       </Provider>
     </PaperProvider>

@@ -73,6 +73,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("users");
                     setIsDrawerOpen(false);
+                    router.push("/home/admin/userList");
                   }}
                 />
               </Drawer.Section>
@@ -114,6 +115,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                     //setActive("assignments");
                     setIsDrawerOpen(false);
                     router.push("/home/guides/assignmentList");
+                    
                   }}
                 />
               </Drawer.Section>
