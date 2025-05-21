@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { TextInput, HelperText, Button, Text } from "react-native-paper";
+import React, { useState, useMemo } from "react";
+import { ScrollView, StyleSheet, View, Animated, Dimensions } from "react-native";
+import { TextInput, HelperText, Button, Text, IconButton, Portal, Modal } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,191 +33,248 @@ interface ProfileProps {
   isRegistered?: boolean;
 }
 
-export default function Profile() {
-  const dispatch = useDispatch<AppDispatch>();
-  const [showSecureText, setShowSecureText] = useState(true);
-  const [showSecureText2, setShowSecureText2] = useState(true);
+interface ProfileFieldProps {
+  label: string;
+  value: string;
+  isEditing: boolean;
+  control: any;
+  name: keyof SignupRequest;
+  errors: any;
+  isPassword?: boolean;
+  showSecureText?: boolean;
+  setShowSecureText?: (show: boolean) => void;
+}
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupRequest>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      username: "",
-      email: "",
-      name: "",
-      phone: "",
-      password: "",
-      passwordConfirmation: "",
-    },
-  });
-
-  const onSubmit = (data: SignupRequest) => {
-    console.log("Submitting:", data);
-    dispatch(fetchSignup(data));
-  };
-
+const ProfileField = React.memo(({ 
+  label, 
+  value, 
+  isEditing, 
+  control, 
+  name, 
+  errors, 
+  isPassword = false, 
+  showSecureText = true, 
+  setShowSecureText = () => {} 
+}: ProfileFieldProps) => {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="titleMedium" style={styles.title}>
-        Perfil
-      </Text>
-      {/* Name */}
-      <Controller
-        control={control}
-        name="name"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Nombre"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-            />
-            {errors.name?.message && (
-              <HelperText type="error">{errors.name?.message}</HelperText>
-            )}
-          </>
-        )}
-      />
+    <View style={styles.fieldContainer}>
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.value}>{value}</Text>
+      </View>
+    </View>
+  );
+});
 
-      {/* Username */}
-      <Controller
-        control={control}
-        name="username"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Nombre de Usuario"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              style={styles.input}
-            />
-            {errors.username?.message && (
-              <HelperText type="error">{errors.username?.message}</HelperText>
-            )}
-          </>
-        )}
-      />
-
-      {/* Email */}
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Correo"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              style={styles.input}
-            />
-            {errors.email?.message && (
-              <HelperText type="error">{errors.email?.message}</HelperText>
-            )}
-          </>
-        )}
-      />
-
-      {/* Phone */}
-      <Controller
-        control={control}
-        name="phone"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Teléfono"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              style={styles.input}
-            />
-            {errors.phone?.message && (
-              <HelperText type="error">{errors.phone?.message}</HelperText>
-            )}
-          </>
-        )}
-      />
-
-      {/* Password */}
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Contraseña"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              secureTextEntry={showSecureText}
-              style={styles.input}
-              right={
+const EditField = React.memo(({ 
+  label, 
+  value, 
+  control, 
+  name, 
+  errors, 
+  isPassword = false, 
+  showSecureText = true, 
+  setShowSecureText = () => {} 
+}: Omit<ProfileFieldProps, 'isEditing'>) => {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field: { onChange, onBlur, value } }) => (
+        <>
+          <TextInput
+            mode="outlined"
+            label={label}
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            secureTextEntry={isPassword && showSecureText}
+            style={styles.input}
+            right={
+              isPassword ? (
                 <TextInput.Icon
                   icon={showSecureText ? "eye" : "eye-off"}
                   forceTextInputFocus={false}
                   onPress={() => setShowSecureText(!showSecureText)}
                 />
-              }
-            />
-            {errors.password?.message && (
-              <HelperText type="error">{errors.password?.message}</HelperText>
-            )}
-          </>
-        )}
-      />
+              ) : null
+            }
+          />
+          {errors[name]?.message && (
+            <HelperText type="error">{errors[name]?.message}</HelperText>
+          )}
+        </>
+      )}
+    />
+  );
+});
 
-      {/* Confirm Password */}
-      <Controller
-        control={control}
-        name="passwordConfirmation"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              label="Confirmar Contraseña"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              secureTextEntry={showSecureText2}
-              style={styles.input}
-              right={
-                <TextInput.Icon
-                  icon={showSecureText2 ? "eye" : "eye-off"}
-                  forceTextInputFocus={false}
-                  onPress={() => setShowSecureText2(!showSecureText2)}
-                />
-              }
-            />
-            {errors.passwordConfirmation?.message && (
-              <HelperText type="error">
-                {errors.passwordConfirmation?.message}
-              </HelperText>
-            )}
-          </>
-        )}
-      />
+export default function Profile() {
+  const dispatch = useDispatch<AppDispatch>();
+  const [showSecureText, setShowSecureText] = useState(true);
+  const [showSecureText2, setShowSecureText2] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
-      {/* Submit Button */}
-      <Button
-        mode="contained"
-        onPress={handleSubmit(onSubmit)}
-        style={styles.button}
-        //disabled={loading}
-      >
-        {/* {isRegistered ? "Actualizar" : "Registrar"} */}
-        Registrar
-      </Button>
-    </ScrollView>
+  // Mock current user data - replace with your actual user data
+  const currentUser = {
+    username: "johndoe",
+    email: "john@example.com",
+    name: "John Doe",
+    phone: "123456789",
+  };
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+  } = useForm<SignupRequest>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      username: currentUser.username,
+      email: currentUser.email,
+      name: currentUser.name,
+      phone: currentUser.phone,
+      password: "",
+      passwordConfirmation: "",
+    },
+  });
+
+  const formValues = watch();
+
+  // Reset form with current values when opening edit mode
+  React.useEffect(() => {
+    if (isEditing) {
+      reset({
+        username: currentUser.username,
+        email: currentUser.email,
+        name: currentUser.name,
+        phone: currentUser.phone,
+        password: "",
+        passwordConfirmation: "",
+      });
+    }
+  }, [isEditing]);
+
+  const onSubmit = (data: SignupRequest) => {
+    console.log("Submitting:", data);
+    dispatch(fetchSignup(data));
+    setIsEditing(false);
+  };
+
+  const fields = useMemo(() => [
+    { label: "Nombre", name: "name" as keyof SignupRequest, value: formValues.name },
+    { label: "Nombre de Usuario", name: "username" as keyof SignupRequest, value: formValues.username },
+    { label: "Correo", name: "email" as keyof SignupRequest, value: formValues.email },
+    { label: "Teléfono", name: "phone" as keyof SignupRequest, value: formValues.phone },
+  ], [formValues]);
+
+  const passwordFields = useMemo(() => [
+    {
+      label: "Contraseña",
+      name: "password" as keyof SignupRequest,
+      value: formValues.password,
+      isPassword: true,
+      showSecureText,
+      setShowSecureText,
+    },
+    {
+      label: "Confirmar Contraseña",
+      name: "passwordConfirmation" as keyof SignupRequest,
+      value: formValues.passwordConfirmation,
+      isPassword: true,
+      showSecureText: showSecureText2,
+      setShowSecureText: setShowSecureText2,
+    },
+  ], [formValues, showSecureText, showSecureText2]);
+
+  return (
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text variant="titleMedium" style={styles.title}>
+            Perfil
+          </Text>
+          <IconButton
+            icon="pencil"
+            onPress={() => setIsEditing(true)}
+          />
+        </View>
+
+        {fields.map((field) => (
+          <ProfileField
+            key={field.name}
+            {...field}
+            isEditing={false}
+            control={control}
+            errors={errors}
+          />
+        ))}
+      </ScrollView>
+
+      <Portal>
+        <Modal
+          visible={isEditing}
+          onDismiss={() => setIsEditing(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleContainer}>
+                <Text variant="titleLarge" style={styles.modalTitle}>
+                  Editar Perfil
+                </Text>
+                <Text variant="bodySmall" style={styles.modalSubtitle}>
+                  Actualiza tu información personal
+                </Text>
+              </View>
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={() => setIsEditing(false)}
+              />
+            </View>
+
+            <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent}>
+              <View style={styles.formContainer}>
+                {fields.map((field) => (
+                  <EditField
+                    key={field.name}
+                    {...field}
+                    control={control}
+                    errors={errors}
+                  />
+                ))}
+
+                <View style={styles.passwordSection}>
+                  <Text variant="titleSmall" style={styles.sectionTitle}>
+                    Cambiar Contraseña
+                  </Text>
+                  {passwordFields.map((field) => (
+                    <EditField
+                      key={field.name}
+                      {...field}
+                      control={control}
+                      errors={errors}
+                    />
+                  ))}
+                </View>
+
+                <Button
+                  mode="contained"
+                  onPress={handleSubmit(onSubmit)}
+                  style={styles.button}
+                  contentStyle={styles.buttonContent}
+                >
+                  Guardar Cambios
+                </Button>
+              </View>
+            </ScrollView>
+          </View>
+        </Modal>
+      </Portal>
+    </>
   );
 }
 
@@ -227,15 +284,94 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 20,
   },
-  input: {
-    marginTop: 10,
-  },
-  button: {
-    marginTop: 20,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     marginHorizontal: 16,
     marginTop: 8,
+  },
+  fieldContainer: {
+    marginVertical: 1,
+  },
+  labelContainer: {
+    marginVertical: 8,
+    paddingHorizontal: 16,
+  },
+  label: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  value: {
+    fontSize: 16,
+    color: '#000',
+  },
+  input: {
+    marginTop: 10,
+    backgroundColor: 'transparent',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    margin: 0,
+    marginTop: 'auto',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '98%',
+  },
+  modalContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitleContainer: {
+    flex: 1,
+    marginRight: 16,
+  },
+  modalTitle: {
+    fontWeight: '600',
+  },
+  modalSubtitle: {
+    color: '#666',
+    marginTop: 4,
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+  },
+  formContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  passwordSection: {
+    marginTop: 24,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  sectionTitle: {
     marginBottom: 16,
+    color: '#666',
+  },
+  button: {
+    marginTop: 32,
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    paddingVertical: 8,
   },
 });
