@@ -37,7 +37,7 @@ export default function RootLayout() {
 
             {/*Supervisor */}
             <Stack.Screen name="home/supervisor/guideList" options={{ title: "Guías" }} />
-
+            <Stack.Screen name="home/supervisor/appoinmentList" options={{ title: "Agendamientos" }} />
             {/*Admin */}
             <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
 

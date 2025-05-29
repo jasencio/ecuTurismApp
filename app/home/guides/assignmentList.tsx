@@ -1,60 +1,62 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Image,
-  Dimensions,
-} from "react-native";
-import {
-  Card,
-  Text,
-} from "react-native-paper";
-import { useRouter } from "expo-router";
-import CustomSafeAreaView from "@/components/CustomSafeAreaView";
+import {  StyleSheet, ScrollView } from "react-native";
+import { Appointment } from "@/types/Appointment";
+import { AppointmentCard } from "@/components/AppointmentCard";
 
-const { height } = Dimensions.get("window");
-
-const CustomCard = () => {
-  const router = useRouter();
-  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
-
-  return (
-    <TouchableWithoutFeedback onPress={()=>{
-        router.navigate("/home/explorer/appointment/appointmentDetail");
-    }} accessible={false}>
-      <Card style={styles.card}>
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <Card.Content>
-          <Text variant="titleSmall" style={styles.title}>
-            Ubicacion
-          </Text>
-          <Text variant="bodySmall" style={styles.text}>
-            Bike Park
-          </Text>
-        </Card.Content>
-      </Card>
-    </TouchableWithoutFeedback>
-  );
-};
+// Mock data - replace with your actual data
+const appointments: Appointment[] = [
+  {
+    id: '1',
+    location: 'Bosque Protector',
+    route: 'Sendero Principal',
+    date: '01/05/2025',
+    time: '09:00',
+    status: 'confirmado',
+    image: 'https://picsum.photos/700',
+    userName: 'María García',
+    userEmail: 'maria.garcia@email.com',
+    visitors: 4,
+    guideName: 'Juan Pérez',
+  },
+  {
+    id: '2',
+    location: 'Parque Natural',
+    route: 'Ruta del Río',
+    date: '02/05/2025',
+    time: '10:30',
+    status: 'pendiente',
+    image: 'https://picsum.photos/701',
+    userName: 'Carlos Rodríguez',
+    userEmail: 'carlos.rodriguez@email.com',
+    visitors: 2,
+    guideName: 'Ana Martínez',
+  },
+  {
+    id: '3',
+    location: 'Montaña Verde',
+    route: 'Sendero de Aventura',
+    date: '03/05/2025',
+    time: '08:00',
+    status: 'confirmado',
+    image: 'https://picsum.photos/702',
+    userName: 'Laura Sánchez',
+    userEmail: 'laura.sanchez@email.com',
+    visitors: 6,
+    guideName: 'Pedro López',
+  },
+];
 
 const AssignmentList = () => {
   return (
-    <CustomSafeAreaView>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        {[1, 2,].map((key) => {
-          return <CustomCard key={key}></CustomCard>;
-        })}
-      </ScrollView>
-    </CustomSafeAreaView>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {appointments.map((appointment) => (
+        <AppointmentCard key={appointment.id} appointment={appointment} />
+      ))}
+    </ScrollView>
   );
 };
 
@@ -62,25 +64,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  card: {
-    marginTop: 10,
-    //marginBottom: 16,
-  },
-  image: {
-    height: height * 0.2,
-    width: "100%",
-    borderRadius: 15
-  },
-  title: {
-    marginTop: 4,
-    fontWeight: "bold",
-  },
-  text: {
-    marginBottom: 2,
+  contentContainer: {
+    paddingBottom: 16,
+    paddingTop: 16
   },
 });
 

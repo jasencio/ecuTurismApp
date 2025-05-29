@@ -104,6 +104,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("scheduling");
                     setIsDrawerOpen(false);
+                    router.push("/home/supervisor/appoinmentList");
                   }}
                 />
               </Drawer.Section>
