@@ -10,6 +10,11 @@ const users = [
   { id: '3', name: 'Bob Johnson', email: 'bob.johnson@example.com', role: 'Turista' },
   { id: '4', name: 'Alice Brown', email: 'alice.brown@example.com', role: 'Guia' },
   { id: '5', name: 'Charlie Wilson', email: 'charlie.wilson@example.com', role: 'Turista' },
+  { id: '6', name: 'John Doe', email: 'john.doe@example.com', role: 'Administrador' },
+  { id: '7', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Guia' },
+  { id: '8', name: 'Bob Johnson', email: 'bob.johnson@example.com', role: 'Turista' },
+  { id: '9', name: 'Alice Brown', email: 'alice.brown@example.com', role: 'Guia' },
+  { id: '10', name: 'Charlie Wilson', email: 'charlie.wilson@example.com', role: 'Turista' },
 ];
 
 const getRoleColor = (role: string) => {
@@ -30,7 +35,6 @@ const UserList = () => {
 
   return (
     <CustomSafeAreaView>
-      {/* <Text variant="headlineMedium" style={styles.title}>Usuarios</Text> */}
       <List.Section>
         {users.map((user) => (
           <List.Item

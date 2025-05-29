@@ -94,6 +94,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("guides");
                     setIsDrawerOpen(false);
+                    router.push("/home/supervisor/guideList");
                   }}
                 />
                 <Drawer.Item
