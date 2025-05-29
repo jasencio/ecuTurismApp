@@ -85,6 +85,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("routes");
                     setIsDrawerOpen(false);
+                    router.push("/home/supervisor/routeList");
                   }}
                 />
                 <Drawer.Item
