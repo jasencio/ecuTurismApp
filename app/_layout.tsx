@@ -41,6 +41,7 @@ export default function RootLayout() {
             <Stack.Screen name="home/supervisor/appoinmentList" options={{ title: "Agendamientos" }} />
             {/*Admin */}
             <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
+            <Stack.Screen name="home/admin/userDetail" options={{ title: "Cambiar Rol" }} />
 
         </Stack>
       </Provider>

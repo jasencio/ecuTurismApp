@@ -2,25 +2,28 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { List, Text, useTheme } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
 // Mock data for demonstration - replace with your actual data
 const users = [
   { id: '1', name: 'John Doe', email: 'john.doe@example.com', role: 'Administrador' },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Guia' },
-  { id: '3', name: 'Bob Johnson', email: 'bob.johnson@example.com', role: 'Turista' },
-  { id: '4', name: 'Alice Brown', email: 'alice.brown@example.com', role: 'Guia' },
-  { id: '5', name: 'Charlie Wilson', email: 'charlie.wilson@example.com', role: 'Turista' },
-  { id: '6', name: 'John Doe', email: 'john.doe@example.com', role: 'Administrador' },
-  { id: '7', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Guia' },
-  { id: '8', name: 'Bob Johnson', email: 'bob.johnson@example.com', role: 'Turista' },
-  { id: '9', name: 'Alice Brown', email: 'alice.brown@example.com', role: 'Guia' },
-  { id: '10', name: 'Charlie Wilson', email: 'charlie.wilson@example.com', role: 'Turista' },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Administrador de compania' },
+  { id: '3', name: 'Bob Johnson', email: 'bob.johnson@example.com', role: 'Guia' },
+  { id: '4', name: 'Alice Brown', email: 'alice.brown@example.com', role: 'Turista' },
+  { id: '5', name: 'Charlie Wilson', email: 'charlie.wilson@example.com', role: 'Administrador de compania' },
+  { id: '6', name: 'David Miller', email: 'david.miller@example.com', role: 'Guia' },
+  { id: '7', name: 'Eva Garcia', email: 'eva.garcia@example.com', role: 'Turista' },
+  { id: '8', name: 'Frank Lee', email: 'frank.lee@example.com', role: 'Administrador' },
+  { id: '9', name: 'Grace Martinez', email: 'grace.martinez@example.com', role: 'Guia' },
+  { id: '10', name: 'Henry Taylor', email: 'henry.taylor@example.com', role: 'Turista' },
 ];
 
 const getRoleColor = (role: string) => {
   switch (role) {
     case 'Administrador':
       return '#FF5252'; // Red
+    case 'Administrador de compania':
+      return '#FF9800'; // Orange
     case 'Guia':
       return '#4CAF50'; // Green
     case 'Turista':
@@ -32,6 +35,11 @@ const getRoleColor = (role: string) => {
 
 const UserList = () => {
   const theme = useTheme();
+  const router = useRouter();
+
+  const handleUserPress = (userId: string) => {
+    router.push(`/home/admin/userDetail?userId=${userId}`);
+  };
 
   return (
     <CustomSafeAreaView>
@@ -51,6 +59,7 @@ const UserList = () => {
             left={props => <List.Icon {...props} icon="account" />}
             right={props => <List.Icon {...props} icon="chevron-right" />}
             style={styles.listItem}
+            onPress={() => handleUserPress(user.id)}
           />
         ))}
       </List.Section>
