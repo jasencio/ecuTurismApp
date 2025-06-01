@@ -150,9 +150,6 @@ const SupervisorRouteList = () => {
     <CustomSafeAreaView>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant="headlineSmall" style={styles.title}>
-            Gestión de Rutas
-          </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
             Administra las rutas disponibles para los exploradores
           </Text>
