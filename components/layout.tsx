@@ -65,7 +65,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
           {/* Drawer Menu (Visible when open) */}
           {isDrawerOpen && (
             <View style={styles.drawerContainer}>
-              <Drawer.Section title="Administracion">
+              <Drawer.Section title="Administrador">
                 <Drawer.Item
                   label="Usuarios"
                   icon="account-multiple"
@@ -76,8 +76,28 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                     router.push("/home/admin/userList");
                   }}
                 />
+                <Drawer.Item
+                  label="Organizaciones"
+                  icon="domain"
+                  active={active === "organizations"}
+                  onPress={() => {
+                    //setActive("organizations");
+                    setIsDrawerOpen(false);
+                    router.push("/home/admin/organizationList");
+                  }}
+                />
               </Drawer.Section>
-              <Drawer.Section title="Supervisor">
+              <Drawer.Section title="Gestión de organización">
+              <Drawer.Item
+                  label="Organización"
+                  icon="domain"
+                  active={active === "organizations"}
+                  onPress={() => {
+                    //setActive("organizations");
+                    setIsDrawerOpen(false);
+                    router.push("/home/supervisor/organization");
+                  }}
+                />
                 <Drawer.Item
                   label="Rutas"
                   icon="compass"
@@ -89,7 +109,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   }}
                 />
                 <Drawer.Item
-                  label="Guias"
+                  label="Guías"
                   icon="account-multiple"
                   active={active === "guides"}
                   onPress={() => {
@@ -109,7 +129,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   }}
                 />
               </Drawer.Section>
-              <Drawer.Section title="Guia">
+              <Drawer.Section title="Guía">
                 <Drawer.Item
                   label="Asignaciones"
                   icon="calendar-alert"
