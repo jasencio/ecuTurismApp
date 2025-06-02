@@ -10,7 +10,7 @@ interface OrganizationCardProps {
   adminName: string;
   adminEmail: string;
   status: 'active' | 'inactive';
-  onEdit: (id: string) => void;
+  onEdit: (id: string, event: any) => void;
   onToggleStatus: (id: string) => void;
 }
 
@@ -54,7 +54,7 @@ const OrganizationCard = ({
       <View style={styles.cardActions}>
         <Button 
           mode="outlined" 
-          onPress={() => onEdit(id)}
+          onPress={(event) => onEdit(id, event)}
           style={styles.editButton}
           icon="pencil"
         >
@@ -62,7 +62,7 @@ const OrganizationCard = ({
         </Button>
         <Button 
           mode="contained" 
-          onPress={() => router.push("/home/admin/organizationList")}
+          onPress={() => router.push("/home/admin/organizationDetail")}
           style={styles.viewButton}
         >
           Ver detalles
@@ -113,9 +113,19 @@ const OrganizationList = () => {
     },
   ];
 
-  const handleEdit = (id: string) => {
-    // TODO: Implement edit functionality
-    console.log("Edit organization:", id);
+  const handleOrganizationPress = (orgId: string) => {
+    router.push({
+      pathname: "/home/admin/organizationDetail",
+      params: { id: orgId }
+    });
+  };
+
+  const handleEditPress = (orgId: string, event: any) => {
+    event.stopPropagation();
+    router.push({
+      pathname: "/home/admin/organizationEdit",
+      params: { id: orgId }
+    });
   };
 
   const handleToggleStatus = (id: string) => {
@@ -141,7 +151,7 @@ const OrganizationList = () => {
             <OrganizationCard
               key={org.id}
               {...org}
-              onEdit={handleEdit}
+              onEdit={handleEditPress}
               onToggleStatus={handleToggleStatus}
             />
           ))}
@@ -151,8 +161,7 @@ const OrganizationList = () => {
           icon="plus"
           style={styles.fab}
           onPress={() => {
-            // TODO: Implement new organization creation
-            console.log("Create new organization");
+            router.push("/home/admin/organizationCreate");
           }}
           label="Nueva Organización"
         />
