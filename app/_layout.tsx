@@ -25,7 +25,7 @@ export default function RootLayout() {
             name="forgotpassword"
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
           {/*Explorer */}
           <Stack.Screen name="home/explorer/appointment/appointmentCreate" options={{ title: "Agendamiento" }} />
           <Stack.Screen name="home/explorer/appointment/appointmentDetail" options={{ title: "Detalle Agendamiento" }} />

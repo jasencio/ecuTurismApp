@@ -1,28 +1,63 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
+  ImageSourcePropType,
+  useWindowDimensions,
 } from "react-native";
-import { Button, Card, Text } from "react-native-paper";
+import { Button, Card, Text, ActivityIndicator } from "react-native-paper";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+// Import all available images
+const locationImages = {
+  bikePark: {
+    small: require('../assets/images/places/optimized/bike_park_small.jpg'),
+    medium: require('../assets/images/places/optimized/bike_park_medium.jpg'),
+    large: require('../assets/images/places/optimized/bike_park_large.jpg'),
+  },
+  sendero1: {
+    small: require('../assets/images/places/optimized/sendero1_small.jpg'),
+    medium: require('../assets/images/places/optimized/sendero1_medium.jpg'),
+    large: require('../assets/images/places/optimized/sendero1_large.jpg'),
+  },
+  sendero2: {
+    small: require('../assets/images/places/optimized/sendero2_small.jpg'),
+    medium: require('../assets/images/places/optimized/sendero2_medium.jpg'),
+    large: require('../assets/images/places/optimized/sendero2_large.jpg'),
+  }
+};
+
+// Array of image keys for random selection
+const imageKeys = ['bikePark', 'sendero1', 'sendero2'];
 
 interface LocationCardProps {
   title: string;
   description: string;
-  imageUrl: string;
   address: string;
+  imageKey: keyof typeof locationImages;
 }
 
-const CustomCard = ({ title, description, imageUrl, address }: LocationCardProps) => {
+const CustomCard = ({ title, description, address, imageKey }: LocationCardProps) => {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  
+  // Choose image size based on screen width
+  const imageSize = useMemo(() => {
+    if (width < 360) return 'small';
+    if (width < 768) return 'medium';
+    return 'large';
+  }, [width]);
 
   return (
     <TouchableWithoutFeedback onPress={() => router.push("/home/explorer/route/routeList")}>
       <Card style={styles.card} mode="elevated">
-        <Card.Cover source={{ uri: imageUrl }} style={styles.cardImage} />
+        <Card.Cover 
+          source={locationImages[imageKey][imageSize]} 
+          style={styles.cardImage}
+        />
         <Card.Content style={styles.cardContent}>
           <Text variant="titleLarge" style={styles.cardTitle}>{title}</Text>
           <Text variant="bodyMedium" style={styles.description} numberOfLines={2}>
@@ -50,31 +85,39 @@ const CustomCard = ({ title, description, imageUrl, address }: LocationCardProps
   );
 };
 
+type ImageKey = keyof typeof locationImages;
+
 const Locations = () => {
+  // Function to get a random image key with proper typing
+  const getRandomImageKey = (): ImageKey => {
+    const randomIndex = Math.floor(Math.random() * imageKeys.length);
+    return imageKeys[randomIndex] as ImageKey;
+  };
+
   const sampleLocations = [
     {
       title: "Bike Park Sierra Nevada",
       description: "Ruta de montaña con impresionantes vistas panorámicas y senderos técnicos para todos los niveles.",
-      imageUrl: "https://picsum.photos/700",
-      address: "Carretera de la Sierra Nevada, km 23, 18196 Monachil, Granada"
+      address: "Carretera de la Sierra Nevada, km 23, 18196 Monachil, Granada",
+      imageKey: 'bikePark' as ImageKey
     },
     {
       title: "Sendero del Río Verde",
       description: "Paseo tranquilo junto al río, perfecto para familias y principiantes. Naturaleza exuberante y cascadas.",
-      imageUrl: "https://picsum.photos/701",
-      address: "Camino del Río Verde, 18196 Monachil, Granada"
+      address: "Camino del Río Verde, 18196 Monachil, Granada",
+      imageKey: getRandomImageKey()
     },
     {
       title: "Cumbre del Veleta",
       description: "Desafiante ruta de alta montaña con vistas espectaculares de la Sierra Nevada.",
-      imageUrl: "https://picsum.photos/702",
-      address: "Pradollano, 18196 Sierra Nevada, Granada"
+      address: "Pradollano, 18196 Sierra Nevada, Granada",
+      imageKey: getRandomImageKey()
     },
     {
       title: "Bosque de la Alhambra",
       description: "Ruta histórica a través de bosques centenarios con vistas a la Alhambra.",
-      imageUrl: "https://picsum.photos/703",
-      address: "Calle Real de la Alhambra, s/n, 18009 Granada"
+      address: "Calle Real de la Alhambra, s/n, 18009 Granada",
+      imageKey: getRandomImageKey()
     }
   ];
 
@@ -128,6 +171,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     height: 200,
+    backgroundColor: '#f0f0f0',
   },
   cardContent: {
     padding: 16,
