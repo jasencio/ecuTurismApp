@@ -93,7 +93,7 @@ const RouteCard = ({
         </Button>
         <Button 
           mode="contained" 
-          onPress={() => router.push(`/home/explorer/route/routeDetail?title=${encodeURIComponent(title)}`)}
+          onPress={() => router.push(`/home/admin_organization/routeDetail?id=${id}`)}
           style={styles.viewButton}
         >
           Vista previa
@@ -137,8 +137,7 @@ const AdminOrganizationRouteList = () => {
   ];
 
   const handleEdit = (id: string) => {
-    // TODO: Implement edit functionality
-    console.log("Edit route:", id);
+    router.push(`/home/admin_organization/routeEdit?id=${id}`);
   };
 
   const handleToggleStatus = (id: string) => {
@@ -174,8 +173,7 @@ const AdminOrganizationRouteList = () => {
           icon="plus"
           style={styles.fab}
           onPress={() => {
-            // TODO: Implement new route creation
-            console.log("Create new route");
+            router.push('/home/admin_organization/routeCreate');
           }}
           label="Nueva Ruta"
         />
