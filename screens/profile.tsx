@@ -10,8 +10,9 @@ import { fetchSignup } from "@/slices/loginSlice";
 import { SignupRequest } from "@/types/Session";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { fetchProfile } from "@/slices/profileSlice";
-import { profileDataSelector } from "@/selectors/profileSelector";
+import { profileDataSelector, loadingSelector } from "@/selectors/profileSelector";
 import { ProfileResponse } from "@/types/Profile";
+import LoadingScreen from "@/components/LoadingScreen";
 
 type ProfileUpdateRequest = {
   name: string;
@@ -131,6 +132,7 @@ export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
   const profileData = useSelector(profileDataSelector) as ProfileResponse | undefined;
+  const isLoading = useSelector(loadingSelector);
   const [showSecureText, setShowSecureText] = useState(true);
   const [showSecureText2, setShowSecureText2] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -206,6 +208,7 @@ export default function Profile() {
 
   return (
     <>
+      {isLoading && <LoadingScreen message="Cargando perfil..." />}
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text variant="titleMedium" style={styles.title}>
@@ -214,6 +217,7 @@ export default function Profile() {
           <IconButton
             icon="pencil"
             onPress={() => setIsEditing(true)}
+            disabled={isLoading}
           />
         </View>
 
@@ -248,6 +252,7 @@ export default function Profile() {
                 icon="close"
                 size={24}
                 onPress={() => setIsEditing(false)}
+                disabled={isLoading}
               />
             </View>
 
@@ -281,6 +286,8 @@ export default function Profile() {
                   onPress={handleSubmit(onSubmit)}
                   style={styles.button}
                   contentStyle={styles.buttonContent}
+                  loading={isLoading}
+                  disabled={isLoading}
                 >
                   Guardar Cambios
                 </Button>
