@@ -103,7 +103,7 @@ const RouteCard = ({
   );
 };
 
-const SupervisorRouteList = () => {
+const AdminOrganizationRouteList = () => {
   const router = useRouter();
 
   const sampleRoutes = [
@@ -301,4 +301,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SupervisorRouteList;
+export default AdminOrganizationRouteList;

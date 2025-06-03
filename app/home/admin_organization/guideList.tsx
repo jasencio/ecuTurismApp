@@ -66,7 +66,7 @@ const GuideList = () => {
   const router = useRouter();
 
   const handleGuidePress = (guideId: string) => {
-    router.push(`/home/supervisor/guideDetail?guideId=${guideId}`);
+    router.push(`/home/admin_organization/guideDetail?guideId=${guideId}`);
   };
 
   return (

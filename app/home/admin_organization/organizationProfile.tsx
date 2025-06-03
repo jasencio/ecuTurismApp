@@ -3,7 +3,7 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import OrganizationDetailCard from '@/components/OrganizationDetailCard';
 
 // Mock data or fetch from API
-const supervisorOrganization = {
+const adminOrganization = {
   name: 'Explora Sierra Nevada',
   description: 'Organización dedicada a la exploración y conservación de la Sierra Nevada.',
   adminName: 'Juan Pérez',
@@ -17,7 +17,7 @@ const supervisorOrganization = {
 
 const OrganizationProfileScreen = () => (
   <CustomSafeAreaView>
-    <OrganizationDetailCard {...supervisorOrganization} />
+    <OrganizationDetailCard {...adminOrganization} />
   </CustomSafeAreaView>
 );
 

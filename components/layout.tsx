@@ -95,7 +95,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("organizations");
                     setIsDrawerOpen(false);
-                    router.push("/home/supervisor/organizationProfile");
+                    router.push("/home/admin_organization/organizationProfile");
                   }}
                 />
                 <Drawer.Item
@@ -105,7 +105,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("routes");
                     setIsDrawerOpen(false);
-                    router.push("/home/supervisor/routeList");
+                    router.push("/home/admin_organization/routeList");
                   }}
                 />
                 <Drawer.Item
@@ -115,7 +115,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("guides");
                     setIsDrawerOpen(false);
-                    router.push("/home/supervisor/guideList");
+                    router.push("/home/admin_organization/guideList");
                   }}
                 />
                 <Drawer.Item
@@ -125,7 +125,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("scheduling");
                     setIsDrawerOpen(false);
-                    router.push("/home/supervisor/appoinmentList");
+                    router.push("/home/admin_organization/appoinmentList");
                   }}
                 />
               </Drawer.Section>
