@@ -4,26 +4,44 @@ import { TextInput, HelperText, Button, Text, IconButton, Portal, Modal } from "
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
 import { fetchSignup } from "@/slices/loginSlice";
 import { SignupRequest } from "@/types/Session";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { fetchProfile } from "@/slices/profileSlice";
+import { profileDataSelector } from "@/selectors/profileSelector";
+import { ProfileResponse } from "@/types/Profile";
+
+type ProfileUpdateRequest = {
+  name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  passwordConfirmation?: string;
+};
 
 // Validation Schema using Zod
 const schema = z
   .object({
-    username: z.string().min(1, "El nombre de usuario es requerido."),
-    email: z.string().email("El correo electrónico no es válido."),
     name: z.string().min(1, "El nombre es requerido."),
+    email: z.string().email("El correo electrónico no es válido."),
     phone: z.string().regex(/^[0-9]{9,15}$/, "El teléfono no es válido."),
     password: z
       .string()
-      .min(6, "La contraseña debe tener al menos 6 caracteres."),
+      .min(6, "La contraseña debe tener al menos 6 caracteres.")
+      .optional(),
     passwordConfirmation: z
       .string()
-      .min(6, "La confirmación de contraseña es requerida."),
+      .min(6, "La confirmación de contraseña es requerida.")
+      .optional(),
   })
-  .refine((data) => data.password === data.passwordConfirmation, {
+  .refine((data) => {
+    if (data.password || data.passwordConfirmation) {
+      return data.password === data.passwordConfirmation;
+    }
+    return true;
+  }, {
     message: "Las contraseñas no coinciden.",
     path: ["passwordConfirmation"],
   });
@@ -38,7 +56,7 @@ interface ProfileFieldProps {
   value: string;
   isEditing: boolean;
   control: any;
-  name: keyof SignupRequest;
+  name: keyof ProfileUpdateRequest;
   errors: any;
   isPassword?: boolean;
   showSecureText?: boolean;
@@ -111,17 +129,17 @@ const EditField = React.memo(({
 
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
+  const sessionData = useSelector(sessionDataSelector);
+  const profileData = useSelector(profileDataSelector) as ProfileResponse | undefined;
   const [showSecureText, setShowSecureText] = useState(true);
   const [showSecureText2, setShowSecureText2] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Mock current user data - replace with your actual user data
-  const currentUser = {
-    username: "johndoe",
-    email: "john@example.com",
-    name: "John Doe",
-    phone: "123456789",
-  };
+  React.useEffect(() => {
+    if (sessionData) {
+      dispatch(fetchProfile());
+    }
+  }, [sessionData]);
 
   const {
     control,
@@ -129,13 +147,12 @@ export default function Profile() {
     formState: { errors },
     watch,
     reset,
-  } = useForm<SignupRequest>({
+  } = useForm<ProfileUpdateRequest>({
     resolver: zodResolver(schema),
     defaultValues: {
-      username: currentUser.username,
-      email: currentUser.email,
-      name: currentUser.name,
-      phone: currentUser.phone,
+      email: profileData?.email || "",
+      name: profileData?.name || "",
+      phone: profileData?.phone || "",
       password: "",
       passwordConfirmation: "",
     },
@@ -145,44 +162,42 @@ export default function Profile() {
 
   // Reset form with current values when opening edit mode
   React.useEffect(() => {
-    if (isEditing) {
+    if (isEditing && profileData) {
       reset({
-        username: currentUser.username,
-        email: currentUser.email,
-        name: currentUser.name,
-        phone: currentUser.phone,
+        email: profileData.email,
+        name: profileData.name,
+        phone: profileData.phone,
         password: "",
         passwordConfirmation: "",
       });
     }
-  }, [isEditing]);
+  }, [isEditing, profileData]);
 
-  const onSubmit = (data: SignupRequest) => {
+  const onSubmit = (data: ProfileUpdateRequest) => {
     console.log("Submitting:", data);
-    dispatch(fetchSignup(data));
+    // TODO: Implement profile update action
     setIsEditing(false);
   };
 
   const fields = useMemo(() => [
-    { label: "Nombre", name: "name" as keyof SignupRequest, value: formValues.name },
-    { label: "Nombre de Usuario", name: "username" as keyof SignupRequest, value: formValues.username },
-    { label: "Correo", name: "email" as keyof SignupRequest, value: formValues.email },
-    { label: "Teléfono", name: "phone" as keyof SignupRequest, value: formValues.phone },
-  ], [formValues]);
+    { label: "Nombre", name: "name" as keyof ProfileUpdateRequest, value: profileData?.name || formValues.name },
+    { label: "Correo", name: "email" as keyof ProfileUpdateRequest, value: profileData?.email || formValues.email },
+    { label: "Teléfono", name: "phone" as keyof ProfileUpdateRequest, value: profileData?.phone || formValues.phone },
+  ], [formValues, profileData]);
 
   const passwordFields = useMemo(() => [
     {
       label: "Contraseña",
-      name: "password" as keyof SignupRequest,
-      value: formValues.password,
+      name: "password" as keyof ProfileUpdateRequest,
+      value: formValues.password || "",
       isPassword: true,
       showSecureText,
       setShowSecureText,
     },
     {
       label: "Confirmar Contraseña",
-      name: "passwordConfirmation" as keyof SignupRequest,
-      value: formValues.passwordConfirmation,
+      name: "passwordConfirmation" as keyof ProfileUpdateRequest,
+      value: formValues.passwordConfirmation || "",
       isPassword: true,
       showSecureText: showSecureText2,
       setShowSecureText: setShowSecureText2,

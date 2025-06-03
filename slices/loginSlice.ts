@@ -88,6 +88,7 @@ export const sessionSlice = createSlice({
       .addCase(fetchLogin.fulfilled, (state, action) => {
         state.loading = false;
         state.sessionData = action.payload;
+        setAuthHeader(action.payload.token)
       })
       .addCase(fetchLogin.rejected, (state, action) => {
         state.loading = false;
