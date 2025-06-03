@@ -43,8 +43,10 @@ export default function RootLayout() {
             {/*Admin */}
             <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
             <Stack.Screen name="home/admin/userDetail" options={{ title: "Cambiar Rol" }} />
-            <Stack.Screen name="home/admin/organizationList" options={{ title: "Organizaciones" }} />
-
+            <Stack.Screen name="home/admin/organization/organizationList" options={{ title: "Organizaciones" }} />
+            <Stack.Screen name="home/admin/organization/organizationDetail" options={{ title: "Organización" }} />
+            <Stack.Screen name="home/admin/organization/organizationCreate" options={{ title: "Crear Organización" }} />
+            <Stack.Screen name="home/admin/organization/organizationEdit" options={{ title: "Editar Organización" }} />
         </Stack>
       </Provider>
     </PaperProvider>

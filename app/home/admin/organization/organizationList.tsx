@@ -62,7 +62,7 @@ const OrganizationCard = ({
         </Button>
         <Button 
           mode="contained" 
-          onPress={() => router.push("/home/admin/organizationDetail")}
+          onPress={() => router.push("/home/admin/organization/organizationDetail")}
           style={styles.viewButton}
         >
           Ver detalles
@@ -115,7 +115,7 @@ const OrganizationList = () => {
 
   const handleOrganizationPress = (orgId: string) => {
     router.push({
-      pathname: "/home/admin/organizationDetail",
+      pathname: "/home/admin/organization/organizationDetail",
       params: { id: orgId }
     });
   };
@@ -123,7 +123,7 @@ const OrganizationList = () => {
   const handleEditPress = (orgId: string, event: any) => {
     event.stopPropagation();
     router.push({
-      pathname: "/home/admin/organizationEdit",
+      pathname: "/home/admin/organization/organizationEdit",
       params: { id: orgId }
     });
   };
@@ -161,7 +161,7 @@ const OrganizationList = () => {
           icon="plus"
           style={styles.fab}
           onPress={() => {
-            router.push("/home/admin/organizationCreate");
+            router.push("/home/admin/organization/organizationCreate");
           }}
           label="Nueva Organización"
         />

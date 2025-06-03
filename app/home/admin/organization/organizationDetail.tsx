@@ -1,7 +1,7 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Surface, Button, useTheme, IconButton } from 'react-native-paper';
+import { Text, Surface, useTheme, IconButton } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 // Mock data - replace with actual API call
@@ -26,7 +26,7 @@ const OrganizationDetail = () => {
 
   const handleEdit = () => {
     router.push({
-      pathname: "/home/admin/organizationEdit",
+      pathname: "/home/admin/organization/organizationEdit",
       params: { id }
     });
   };

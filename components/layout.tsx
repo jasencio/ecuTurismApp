@@ -83,7 +83,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
                   onPress={() => {
                     //setActive("organizations");
                     setIsDrawerOpen(false);
-                    router.push("/home/admin/organizationList");
+                    router.push("/home/admin/organization/organizationList");
                   }}
                 />
               </Drawer.Section>

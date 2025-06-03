@@ -38,7 +38,7 @@ const OrganizationCreate = () => {
   const handleCreate = () => {
     // TODO: Implement create functionality
     console.log('Creating organization:', { ...formData, status: formData.status ? 'active' : 'inactive' });
-    router.push('/home/admin/organizationList');
+    router.push('/home/admin/organization/organizationList');
   };
 
   const handleCancel = () => {
@@ -48,12 +48,6 @@ const OrganizationCreate = () => {
   return (
     <CustomSafeAreaView>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
-            Nueva Organización
-          </Text>
-        </View>
-
         <ScrollView 
           style={styles.scrollView}
           contentContainerStyle={styles.content}
@@ -152,13 +146,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  header: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontWeight: 'bold',
   },
   scrollView: {
     flex: 1,

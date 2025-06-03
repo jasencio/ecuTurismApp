@@ -69,12 +69,6 @@ const OrganizationEdit = () => {
   return (
     <CustomSafeAreaView>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}>
-            Editar Organización
-          </Text>
-        </View>
-
         <ScrollView 
           style={styles.scrollView}
           contentContainerStyle={styles.content}
@@ -173,13 +167,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  header: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontWeight: 'bold',
   },
   scrollView: {
     flex: 1,
