@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Searchbar, List, Text, Surface, useTheme, ActivityIndicator } from 'react-native-paper';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Searchbar, List, Text, Surface, useTheme, ActivityIndicator, Portal, IconButton } from 'react-native-paper';
 
 // Mock data - replace with actual API call
 const searchUsers = async (query: string) => {
@@ -37,105 +37,110 @@ const AdminSearch = ({ onSelect, initialValue }: AdminSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(initialValue);
 
-  useEffect(() => {
-    const search = async () => {
-      if (searchQuery.length < 2) {
-        setUsers([]);
-        return;
-      }
+  const openModal = () => {
+    setModalVisible(true);
+    setSearchQuery('');
+    setUsers([]);
+  };
 
-      setLoading(true);
-      try {
-        const results = await searchUsers(searchQuery);
-        setUsers(results);
-      } catch (error) {
-        console.error('Error searching users:', error);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const timeoutId = setTimeout(search, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  const closeModal = () => {
+    setModalVisible(false);
+    Keyboard.dismiss();
+  };
 
   const handleSelect = (user: User) => {
     setSelectedUser(user);
-    setSearchQuery(user.name);
-    setShowResults(false);
+    setModalVisible(false);
+    setSearchQuery('');
+    setUsers([]);
     onSelect(user);
-  };
-
-  const handleSearchFocus = () => {
-    if (searchQuery.length >= 2) {
-      setShowResults(true);
-    }
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setShowResults(true);
-    if (query.length < 2) {
+    if (query.length >= 2) {
+      setLoading(true);
+      // Simulate async search
+      setTimeout(async () => {
+        const results = await searchUsers(query);
+        setUsers(results);
+        setLoading(false);
+      }, 300);
+    } else {
       setUsers([]);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="Buscar administrador..."
-        onChangeText={handleSearchChange}
-        onFocus={handleSearchFocus}
-        value={searchQuery}
-        style={styles.searchbar}
-      />
+      {/* Main form search bar (readonly, opens modal) */}
+      <TouchableOpacity onPress={openModal} activeOpacity={0.7}>
+        <View pointerEvents="none">
+          <Searchbar
+            value={selectedUser ? selectedUser.name : ''}
+            placeholder="Buscar administrador..."
+            editable={false}
+            style={styles.searchbar}
+          />
+        </View>
+      </TouchableOpacity>
 
-      {showResults && (searchQuery.length >= 2) && (
-        <Surface style={[styles.resultsContainer, { backgroundColor: theme.colors.surface }]} elevation={4}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator />
-            </View>
-          ) : users.length > 0 ? (
-            <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled">
-              {users.map((user) => (
-                <List.Item
-                  key={user.id}
-                  title={user.name}
-                  description={user.email}
-                  onPress={() => handleSelect(user)}
-                  style={[
-                    styles.resultItem,
-                    selectedUser?.id === user.id && { backgroundColor: theme.colors.surfaceVariant }
-                  ]}
-                />
-              ))}
-            </ScrollView>
-          ) : (
-            <View style={styles.noResults}>
-              <Text>No se encontraron resultados</Text>
-            </View>
-          )}
-        </Surface>
-      )}
-
+      {/* Selected admin card */}
       {selectedUser && (
-        <View style={styles.selectedContainer}>
-          <Text variant="bodySmall" style={[styles.selectedLabel, { color: theme.colors.onSurfaceVariant }]}>
-            Administrador seleccionado:
-          </Text>
-          <Text variant="bodyMedium" style={[styles.selectedName, { color: theme.colors.onSurface }]}>
-            {selectedUser.name}
-          </Text>
-          <Text variant="bodySmall" style={[styles.selectedEmail, { color: theme.colors.onSurfaceVariant }]}>
-            {selectedUser.email}
-          </Text>
+        <View style={[styles.selectedContainer, { backgroundColor: theme.colors.surfaceVariant }]}> 
+          <Text variant="bodySmall" style={[styles.selectedLabel, { color: theme.colors.onSurfaceVariant }]}>Administrador seleccionado:</Text>
+          <Text variant="bodyMedium" style={[styles.selectedName, { color: theme.colors.onSurface }]}>{selectedUser.name}</Text>
+          <Text variant="bodySmall" style={[styles.selectedEmail, { color: theme.colors.onSurfaceVariant }]}>{selectedUser.email}</Text>
         </View>
       )}
+
+      {/* Fullscreen modal for search */}
+      <Portal>
+        {modalVisible && (
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.modalOverlay}>
+              <Surface style={[styles.modalSurface, { backgroundColor: theme.colors.background }]}> 
+                <View style={styles.modalHeader}>
+                  <IconButton icon="close" onPress={closeModal} accessibilityLabel="Cerrar" />
+                  <Searchbar
+                    autoFocus
+                    placeholder="Buscar administrador..."
+                    value={searchQuery}
+                    onChangeText={handleSearchChange}
+                    style={styles.modalSearchbar}
+                  />
+                </View>
+                <View style={styles.modalContent}>
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator />
+                    </View>
+                  ) : users.length > 0 ? (
+                    <ScrollView keyboardShouldPersistTaps="handled">
+                      {users.map((user) => (
+                        <List.Item
+                          key={user.id}
+                          title={user.name}
+                          description={user.email}
+                          onPress={() => handleSelect(user)}
+                          style={styles.resultItem}
+                        />
+                      ))}
+                    </ScrollView>
+                  ) : searchQuery.length >= 2 ? (
+                    <View style={styles.noResults}>
+                      <Text>No se encontraron resultados</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </Surface>
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+      </Portal>
     </View>
   );
 };
@@ -148,34 +153,11 @@ const styles = StyleSheet.create({
   searchbar: {
     marginBottom: 8,
   },
-  resultsContainer: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    maxHeight: 200,
-    borderRadius: 4,
-    zIndex: 2,
-  },
-  loadingContainer: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  resultsList: {
-    maxHeight: 200,
-  },
-  resultItem: {
-    paddingVertical: 8,
-  },
-  noResults: {
-    padding: 16,
-    alignItems: 'center',
-  },
   selectedContainer: {
     marginTop: 8,
     padding: 12,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
+    zIndex: 1,
   },
   selectedLabel: {
     marginBottom: 4,
@@ -185,6 +167,52 @@ const styles = StyleSheet.create({
   },
   selectedEmail: {
     marginTop: 2,
+  },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  modalSurface: {
+    width: '96%',
+    height: '90%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 8,
+    flexDirection: 'column',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: 'transparent',
+    zIndex: 2,
+  },
+  modalSearchbar: {
+    flex: 1,
+    marginLeft: 4,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resultItem: {
+    paddingVertical: 8,
+    minHeight: 72,
+  },
+  noResults: {
+    padding: 16,
+    alignItems: 'center',
   },
 });
 
