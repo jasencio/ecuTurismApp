@@ -39,7 +39,7 @@ export default function RootLayout() {
             <Stack.Screen name="home/supervisor/routeList" options={{ title: "Gestión de Rutas" }} />
             <Stack.Screen name="home/supervisor/guideList" options={{ title: "Guías" }} />
             <Stack.Screen name="home/supervisor/appoinmentList" options={{ title: "Agendamientos" }} />
-            <Stack.Screen name="home/supervisor/organization" options={{ title: "Organización" }} />
+            <Stack.Screen name="home/supervisor/organizationProfile" options={{ title: "Mi Organización" }} />
             {/*Admin */}
             <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
             <Stack.Screen name="home/admin/userDetail" options={{ title: "Cambiar Rol" }} />
