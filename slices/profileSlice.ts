@@ -8,6 +8,7 @@ interface ProfileState {
     loading: boolean;
     loadingUpdate: boolean;
     error: string | null;
+    successUpdate: boolean;
   }
 
   const initialState: ProfileState = {
@@ -15,6 +16,7 @@ interface ProfileState {
     loading: false,
     loadingUpdate: false,
     error: null,
+    successUpdate: false,
   };
   
 
@@ -37,7 +39,15 @@ interface ProfileState {
     "profile/fetchUpdateProfile",
     async (profileUpdateRequest: ProfileUpdateRequest, thunkAPI) => {
       try {
-        const response = await axiosInstance.put<ApiResponse<ProfileResponse>>("user/profile/me", profileUpdateRequest);
+        // Filter out empty values
+        const filteredRequest = Object.entries(profileUpdateRequest).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            acc[key as keyof ProfileUpdateRequest] = value;
+          }
+          return acc;
+        }, {} as Partial<ProfileUpdateRequest>);
+
+        const response = await axiosInstance.put<ApiResponse<ProfileResponse>>("user/profile/me", filteredRequest);
         console.log('profile-update');
         console.warn(response.data);
         return response?.data?.data;
@@ -69,14 +79,17 @@ interface ProfileState {
         .addCase(fetchUpdateProfile.pending, (state) => {
           state.loadingUpdate = true;
           state.error = null;
+          state.successUpdate = false;
         })
         .addCase(fetchUpdateProfile.fulfilled, (state, action) => {
           state.loadingUpdate = false;
           state.profileData = action.payload;
+          state.successUpdate = true;
         })
         .addCase(fetchUpdateProfile.rejected, (state, action) => {
           state.loadingUpdate = false;
           state.error = action?.error?.message || "Something went wrong";
+          state.successUpdate = false;
         })
   
     },

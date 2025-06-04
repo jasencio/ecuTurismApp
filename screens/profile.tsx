@@ -8,9 +8,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { fetchProfile, fetchUpdateProfile } from "@/slices/profileSlice";
-import { profileDataSelector, loadingSelector } from "@/selectors/profileSelector";
+import { 
+  profileDataSelector,
+  loadingProfileSelector,
+  loadingUpdateSelector,
+  successUpdateSelector 
+} from "@/selectors/profileSelector";
 import { ProfileResponse, ProfileUpdateRequest } from "@/types/Profile";
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 
 
@@ -147,7 +152,10 @@ export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
   const profileData = useSelector(profileDataSelector) as ProfileResponse | undefined;
-  const isLoading = useSelector(loadingSelector);
+  const successUpdate = useSelector(successUpdateSelector);
+  const isLoadingProfile = useSelector(loadingProfileSelector);
+  const isLoadingUpdateProfile = useSelector(loadingUpdateSelector);
+  const isLoading = isLoadingProfile || isLoadingUpdateProfile;
   const [showSecureText, setShowSecureText] = useState(true);
   const [showSecureText2, setShowSecureText2] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -190,11 +198,15 @@ export default function Profile() {
     }
   }, [isEditing, profileData]);
 
+  React.useEffect(() => {
+    if (successUpdate) {
+      setIsEditing(false);
+    }
+  },[successUpdate]);
+
   const onSubmit = (data: ProfileUpdateRequest) => {
     console.log("Submitting:", data);
     dispatch(fetchUpdateProfile(data));
-    // TODO: Implement profile update action
-    //setIsEditing(false);
   };
 
   const fields = useMemo(() => [
@@ -224,7 +236,7 @@ export default function Profile() {
 
   return (
     <>
-      {isLoading && <LoadingScreen message="Cargando perfil..." />}
+      <LoadingOverlay visible={isLoading} message="Cargando perfil..." />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text variant="titleMedium" style={styles.title}>
@@ -236,11 +248,12 @@ export default function Profile() {
             disabled={isLoading}
           />
         </View>
-
         {fields.map((field) => (
           <ProfileField
             key={field.name}
-            {...field}
+            name={field.name}
+            label={field.label}
+            value={field.value || ''} 
             isEditing={false}
             control={control}
             errors={errors}
@@ -523,3 +536,4 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 });
+
