@@ -1,51 +1,62 @@
 import React, { useState, useMemo } from "react";
 import { ScrollView, StyleSheet, View, Animated, Dimensions } from "react-native";
 import { TextInput, HelperText, Button, Text, IconButton, Portal, Modal } from "react-native-paper";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
-import { fetchSignup } from "@/slices/loginSlice";
-import { SignupRequest } from "@/types/Session";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
-import { fetchProfile } from "@/slices/profileSlice";
+import { fetchProfile, fetchUpdateProfile } from "@/slices/profileSlice";
 import { profileDataSelector, loadingSelector } from "@/selectors/profileSelector";
-import { ProfileResponse } from "@/types/Profile";
+import { ProfileResponse, ProfileUpdateRequest } from "@/types/Profile";
 import LoadingScreen from "@/components/LoadingScreen";
 
-type ProfileUpdateRequest = {
-  name: string;
-  email: string;
-  phone: string;
-  password?: string;
-  passwordConfirmation?: string;
-};
+
 
 // Validation Schema using Zod
-const schema = z
-  .object({
-    name: z.string().min(1, "El nombre es requerido."),
-    email: z.string().email("El correo electrónico no es válido."),
-    phone: z.string().regex(/^[0-9]{9,15}$/, "El teléfono no es válido."),
-    password: z
-      .string()
-      .min(6, "La contraseña debe tener al menos 6 caracteres.")
-      .optional(),
-    passwordConfirmation: z
-      .string()
-      .min(6, "La confirmación de contraseña es requerida.")
-      .optional(),
-  })
-  .refine((data) => {
-    if (data.password || data.passwordConfirmation) {
-      return data.password === data.passwordConfirmation;
+const schema = z.object({
+  name: z.string().min(1, "El nombre es requerido."),
+  email: z.string().email("El correo electrónico no es válido."),
+  phone: z.string().regex(/^[0-9]{9,15}$/, "El teléfono no es válido."),
+  password: z.string().optional(),
+  passwordConfirmation: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const password = data.password ?? "";
+  const passwordConfirmation = data.passwordConfirmation ?? "";
+
+  // Only run validation if at least one is non-empty
+  if (password !== "" || passwordConfirmation !== "") {
+    if (password.length < 6) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La contraseña debe tener al menos 6 caracteres.",
+        path: ["password"],
+      });
     }
-    return true;
-  }, {
-    message: "Las contraseñas no coinciden.",
-    path: ["passwordConfirmation"],
-  });
+    if (passwordConfirmation === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La confirmación de contraseña es requerida.",
+        path: ["passwordConfirmation"],
+      });
+    }
+    if (password === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La contraseña es requerida.",
+        path: ["password"],
+      });
+    }
+    if (password && passwordConfirmation && password !== passwordConfirmation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Las contraseñas no coinciden.",
+        path: ["passwordConfirmation"],
+      });
+    }
+  }
+});
 
 interface ProfileProps {
   loading?: boolean;
@@ -99,8 +110,9 @@ const EditField = React.memo(({
     <Controller
       control={control}
       name={name}
+      defaultValue={value}
       render={({ field: { onChange, onBlur, value } }) => (
-        <>
+        <View style={styles.inputContainer}>
           <TextInput
             mode="outlined"
             label={label}
@@ -109,6 +121,7 @@ const EditField = React.memo(({
             onBlur={onBlur}
             secureTextEntry={isPassword && showSecureText}
             style={styles.input}
+            error={!!errors[name]}
             right={
               isPassword ? (
                 <TextInput.Icon
@@ -120,9 +133,11 @@ const EditField = React.memo(({
             }
           />
           {errors[name]?.message && (
-            <HelperText type="error">{errors[name]?.message}</HelperText>
+            <HelperText type="error" visible={!!errors[name]}>
+              {errors[name]?.message}
+            </HelperText>
           )}
-        </>
+        </View>
       )}
     />
   );
@@ -150,7 +165,7 @@ export default function Profile() {
     watch,
     reset,
   } = useForm<ProfileUpdateRequest>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<ProfileUpdateRequest>,
     defaultValues: {
       email: profileData?.email || "",
       name: profileData?.name || "",
@@ -177,8 +192,9 @@ export default function Profile() {
 
   const onSubmit = (data: ProfileUpdateRequest) => {
     console.log("Submitting:", data);
+    dispatch(fetchUpdateProfile(data));
     // TODO: Implement profile update action
-    setIsEditing(false);
+    //setIsEditing(false);
   };
 
   const fields = useMemo(() => [
@@ -258,27 +274,134 @@ export default function Profile() {
 
             <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent}>
               <View style={styles.formContainer}>
-                {fields.map((field) => (
-                  <EditField
-                    key={field.name}
-                    {...field}
-                    control={control}
-                    errors={errors}
-                  />
-                ))}
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      mode="outlined"
+                      label="Nombre"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      style={styles.input}
+                      error={!!errors.name}
+                    />
+                  )}
+                />
+                {errors.name && (
+                  <HelperText type="error" visible={!!errors.name}>
+                    {errors.name.message}
+                  </HelperText>
+                )}
+
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      mode="outlined"
+                      label="Correo"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      style={styles.input}
+                      error={!!errors.email}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  )}
+                />
+                {errors.email && (
+                  <HelperText type="error" visible={!!errors.email}>
+                    {errors.email.message}
+                  </HelperText>
+                )}
+
+                <Controller
+                  control={control}
+                  name="phone"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      mode="outlined"
+                      label="Teléfono"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      style={styles.input}
+                      error={!!errors.phone}
+                      keyboardType="phone-pad"
+                    />
+                  )}
+                />
+                {errors.phone && (
+                  <HelperText type="error" visible={!!errors.phone}>
+                    {errors.phone.message}
+                  </HelperText>
+                )}
 
                 <View style={styles.passwordSection}>
                   <Text variant="titleSmall" style={styles.sectionTitle}>
                     Cambiar Contraseña
                   </Text>
-                  {passwordFields.map((field) => (
-                    <EditField
-                      key={field.name}
-                      {...field}
-                      control={control}
-                      errors={errors}
-                    />
-                  ))}
+                  
+                  <Controller
+                    control={control}
+                    name="password"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        mode="outlined"
+                        label="Contraseña"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        secureTextEntry={showSecureText}
+                        style={styles.input}
+                        error={!!errors.password}
+                        right={
+                          <TextInput.Icon
+                            icon={showSecureText ? "eye" : "eye-off"}
+                            forceTextInputFocus={false}
+                            onPress={() => setShowSecureText(!showSecureText)}
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  {errors.password && (
+                    <HelperText type="error" visible={!!errors.password}>
+                      {errors.password.message}
+                    </HelperText>
+                  )}
+
+                  <Controller
+                    control={control}
+                    name="passwordConfirmation"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        mode="outlined"
+                        label="Confirmar Contraseña"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        secureTextEntry={showSecureText2}
+                        style={styles.input}
+                        error={!!errors.passwordConfirmation}
+                        right={
+                          <TextInput.Icon
+                            icon={showSecureText2 ? "eye" : "eye-off"}
+                            forceTextInputFocus={false}
+                            onPress={() => setShowSecureText2(!showSecureText2)}
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  {errors.passwordConfirmation && (
+                    <HelperText type="error" visible={!!errors.passwordConfirmation}>
+                      {errors.passwordConfirmation.message}
+                    </HelperText>
+                  )}
                 </View>
 
                 <Button
@@ -331,6 +454,9 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     color: '#000',
+  },
+  inputContainer: {
+    marginBottom: 16,
   },
   input: {
     marginTop: 10,
