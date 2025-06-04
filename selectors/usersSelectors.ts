@@ -1,0 +1,8 @@
+import { RootState } from "@/store";
+import { createSelector } from "@reduxjs/toolkit";
+
+const usersState = (state: RootState) => state.users;
+
+export const loadingUsersListSelector = createSelector(usersState, (state) => state.loadingUsersList);
+export const usersListSelector = createSelector(usersState, (state) => state.usersList);
+export const errorSelector = createSelector(usersState, (state) => state.error);

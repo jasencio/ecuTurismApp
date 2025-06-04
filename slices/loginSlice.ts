@@ -51,10 +51,8 @@ export const fetchLogin = createAsyncThunk(
         email,
         password,
       });
-      console.log(response);
       return response?.data?.data;
     } catch (error: any ) {
-      console.log(error);
       return thunkAPI.rejectWithValue("Credenciales inválidas");
     }
   }
