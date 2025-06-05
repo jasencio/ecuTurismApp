@@ -12,17 +12,12 @@ export const roleDisplayNames: Record<UserRole, string> = {
   [UserRole.TOURIST]: "Turista"
 };
 
-export interface Role {
-  id: string;
-  name: UserRole;
-}
-
 export interface User {
   id: string;
   name: string;
   email: string;
   phone: string;
-  roles?: Array<Role>;
+  roles?: Array<UserRole>;
 }
 
 export interface UserListResponse extends Array<User> {}

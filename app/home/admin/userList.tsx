@@ -14,7 +14,7 @@ import { sessionDataSelector } from "@/selectors/sessionSelector";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { User, UserRole, roleDisplayNames } from "@/types/Users";
 
-const getRoleColor = (role: UserRole) => {
+export const getRoleColor = (role: UserRole) => {
   switch (role) {
     case UserRole.ADMIN_SYSTEM:
       return "#FF5252"; // Red
@@ -80,10 +80,10 @@ const UserList = () => {
                         key={index}
                         style={[
                           styles.roleContainer,
-                          { backgroundColor: getRoleColor(role.name) },
+                          { backgroundColor: getRoleColor(role) },
                         ]}
                       >
-                        <Text style={styles.roleText}>{roleDisplayNames[role.name]}</Text>
+                        <Text style={styles.roleText}>{roleDisplayNames[role]}</Text>
                       </View>
                     ))}
                   </View>
