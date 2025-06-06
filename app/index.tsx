@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Text, TextInput, Button, Checkbox } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,8 +21,9 @@ const loginSchema = z.object({
 const LoginScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
@@ -37,16 +38,22 @@ const LoginScreen = () => {
     },
   });
 
-  const onSubmit = (data: LoginRequest) => {
-    console.log("Logging in with:", data);
-    dispatch(fetchLogin(data));
-  };
+  useFocusEffect(
+    React.useCallback(() => {
+      if (sessionData) {
+        router.replace("/home");
+      }
+    }, [sessionData])
+  );
 
-  React.useEffect(() => {
-    if (sessionData) {
-      router.push("/home");
+  const onSubmit = async (data: LoginRequest) => {
+    try {
+      await dispatch(fetchLogin(data)).unwrap();
+      router.replace("/home");
+    } catch (error) {
+      console.error("Login failed:", error);
     }
-  }, [sessionData]);
+  };
 
   return (
     <View

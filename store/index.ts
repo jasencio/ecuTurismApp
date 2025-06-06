@@ -4,16 +4,21 @@ import { persistReducer, persistStore } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileReducer from '@/slices/profileSlice';
 import UsersReducer from '@/slices/usersSlice';
+
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
   whitelist: ['session', 'profile', 'users'],
 };
 
+const persistedSessionReducer = persistReducer(persistConfig, SessionReducer);
+const persistedProfileReducer = persistReducer(persistConfig, ProfileReducer);
+const persistedUsersReducer = persistReducer(persistConfig, UsersReducer);
+
 export const rootReducer = combineReducers({
-    session: persistReducer(  persistConfig, SessionReducer),
-    profile: ProfileReducer,
-    users: UsersReducer,
+    session: persistedSessionReducer,
+    profile: persistedProfileReducer,
+    users: persistedUsersReducer,
 })
 
 // Create store

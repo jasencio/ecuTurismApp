@@ -1,8 +1,11 @@
 import { Stack } from "expo-router";
 import { Provider } from "react-redux";
-import store from "@/store";
+import store, { persistor } from "@/store";
 import { PaperProvider } from "react-native-paper";
 import { DefaultTheme } from 'react-native-paper';
+import { PersistGate } from 'redux-persist/integration/react';
+import { useSelector } from "react-redux";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
 
 export default function RootLayout() {
   const theme = {
@@ -14,26 +17,42 @@ export default function RootLayout() {
       background: "white"
     },
   };
+
   return (
     <PaperProvider theme={theme}>
       <Provider store={store}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="home" options={{ headerShown: false, title: "Inicio"}} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="forgotpassword"
-            options={{ headerShown: false }}
-          />
+        <PersistGate loading={null} persistor={persistor}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen 
+              name="index" 
+              options={{ 
+                headerShown: false,
+                gestureEnabled: false,
+                animation: 'none'
+              }} 
+            />
+            <Stack.Screen 
+              name="home" 
+              options={{ 
+                headerShown: false,
+                gestureEnabled: false,
+                animation: 'none'
+              }} 
+            />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="forgotpassword"
+              options={{ headerShown: false }}
+            />
 
-          {/*Explorer */}
-          <Stack.Screen name="home/explorer/appointment/appointmentCreate" options={{ title: "Agendamiento" }} />
-          <Stack.Screen name="home/explorer/appointment/appointmentDetail" options={{ title: "Detalle Agendamiento" }} />
-          <Stack.Screen name="home/explorer/route/routeList" options={{ title: "Rutas" }} />
-          <Stack.Screen name="home/explorer/route/routeDetail" options={{ title: "Ruta" }} />
+            {/*Explorer */}
+            <Stack.Screen name="home/explorer/appointment/appointmentCreate" options={{ title: "Agendamiento" }} />
+            <Stack.Screen name="home/explorer/appointment/appointmentDetail" options={{ title: "Detalle Agendamiento" }} />
+            <Stack.Screen name="home/explorer/route/routeList" options={{ title: "Rutas" }} />
+            <Stack.Screen name="home/explorer/route/routeDetail" options={{ title: "Ruta" }} />
 
-           {/*Guide */}
-           <Stack.Screen name="home/guides/assignmentList" options={{ title: "Asignaciones" }} />
+            {/*Guide */}
+            <Stack.Screen name="home/guides/assignmentList" options={{ title: "Asignaciones" }} />
 
             {/*Administrador de Organización */}
             <Stack.Screen name="home/admin_organization/routeList" options={{ title: "Gestión de Rutas" }} />
@@ -50,7 +69,8 @@ export default function RootLayout() {
             <Stack.Screen name="home/admin/organization/organizationDetail" options={{ title: "Organización" }} />
             <Stack.Screen name="home/admin/organization/organizationCreate" options={{ title: "Crear Organización" }} />
             <Stack.Screen name="home/admin/organization/organizationEdit" options={{ title: "Editar Organización" }} />
-        </Stack>
+          </Stack>
+        </PersistGate>
       </Provider>
     </PaperProvider>
   );
