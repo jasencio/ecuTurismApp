@@ -8,3 +8,5 @@ export const usersListSelector = createSelector(usersState, (state) => state.use
 export const errorSelector = createSelector(usersState, (state) => state.error);
 export const userSelector = createSelector(usersState, (state) => state.user);
 export const loadingUserSelector = createSelector(usersState, (state) => state.loadingUser);
+export const loadingUserUpdateSelector = createSelector(usersState, (state) => state.loadingUserUpdate);
+export const successUpdateUserSelector = createSelector(usersState, (state) => state.successUserUpdate);

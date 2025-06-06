@@ -7,7 +7,9 @@ interface UsersState {
     user?: User;
     loadingUsersList: boolean;
     loadingUser: boolean;
+    loadingUserUpdate: boolean;
     error: string | null;
+    successUserUpdate: boolean;
   }
 
   const initialState: UsersState = {
@@ -15,7 +17,9 @@ interface UsersState {
     user: undefined,
     loadingUsersList: false,
     loadingUser: false,
+    loadingUserUpdate: false,
     error: null,
+    successUserUpdate: false,
   };
   
 
@@ -43,6 +47,18 @@ interface UsersState {
     }
   );
 
+  export const updateUser = createAsyncThunk(
+    "users/fetchUpdateUser",
+    async (user: User, thunkAPI) => {
+      try {
+        const response = await axiosInstance.put<User>(`config/user/${user.id}`, user);
+        return response?.data;
+      } catch (error: any ) {
+        return thunkAPI.rejectWithValue("Credenciales inválidas");
+      }
+    }
+  );
+  
   export const usersSlice = createSlice({
     name: "users",
     initialState,
@@ -53,6 +69,7 @@ interface UsersState {
           state.loadingUsersList = true;
           state.usersList = undefined;
           state.error = null;
+          state.successUserUpdate = false;
         })
         .addCase(fetchUsers.fulfilled, (state, action) => {
           state.loadingUsersList = false;
@@ -74,6 +91,21 @@ interface UsersState {
         .addCase(fetchUser.rejected, (state, action) => {
           state.loadingUser = false;
           state.error = action?.error?.message || "Something went wrong";
+        })
+        .addCase(updateUser.pending, (state) => {
+          state.loadingUserUpdate = true;
+          state.error = null;
+          state.successUserUpdate = false;
+        })
+        .addCase(updateUser.fulfilled, (state, action) => {
+          state.loadingUserUpdate = false;
+          state.user = action.payload;
+          state.successUserUpdate = true;
+        })
+        .addCase(updateUser.rejected, (state, action) => {
+          state.loadingUserUpdate = false;
+          state.error = action?.error?.message || "Something went wrong";
+          state.successUserUpdate = false;
         });
     },
   });

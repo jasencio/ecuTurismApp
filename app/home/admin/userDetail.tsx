@@ -14,29 +14,46 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
-import { fetchUser } from "@/slices/usersSlice";
-import { loadingUserSelector, userSelector } from "@/selectors/usersSelectors";
+import { fetchUser, updateUser } from "@/slices/usersSlice";
+import {
+  loadingUserSelector,
+  loadingUserUpdateSelector,
+  successUpdateUserSelector,
+  userSelector,
+} from "@/selectors/usersSelectors";
 import LoadingScreen from "@/components/LoadingScreen";
 import { roleDisplayNames, UserRole, User } from "@/types/Users";
 import { getRoleColor } from "./userList";
+import { useForm, Controller } from "react-hook-form";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const UserDetail = () => {
   const theme = useTheme();
   const router = useRouter();
   const { userId } = useLocalSearchParams();
-  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
   const isLoadingUser = useSelector(loadingUserSelector);
+  const isLoadingUserUpdate = useSelector(loadingUserUpdateSelector);
   const user = useSelector(userSelector);
+  const successUpdateUser = useSelector(successUpdateUserSelector);
+
+  const { control, handleSubmit, setValue, watch } = useForm<User>({
+    defaultValues: {
+      roles: [],
+      id: userId as string,
+    },
+  });
+
+  const selectedRoles = watch("roles");
 
   // Initialize selected roles when user data is loaded
   React.useEffect(() => {
     if (user?.roles) {
-      setSelectedRoles(user.roles);
+      setValue("roles", user.roles);
     }
-  }, [user]);
+  }, [user, setValue]);
 
   const fetchUsersData = React.useCallback(() => {
     if (sessionData) {
@@ -56,13 +73,11 @@ const UserDetail = () => {
     }, [fetchUsersData])
   );
 
-  const handleRoleToggle = (role: UserRole) => {
-    setSelectedRoles(prev => 
-      prev.includes(role)
-        ? prev.filter(r => r !== role)
-        : [...prev, role]
-    );
-  };
+  React.useEffect(() => {
+    if (successUpdateUser) {
+      router.back();
+    }
+  }, [successUpdateUser]);
 
   if (isLoadingUser) {
     return <LoadingScreen />;
@@ -76,11 +91,14 @@ const UserDetail = () => {
     );
   }
 
+  const onSubmit = (data: User) => {
+    console.log("Saving new roles:", data.roles);
+    setShowSaveDialog(true);
+  };
+
   const handleSave = () => {
-    console.log("Saving new roles:", selectedRoles);
+    dispatch(updateUser(watch()));
     setShowSaveDialog(false);
-    // Navigate back to user list
-    router.back();
   };
 
   const roles = [
@@ -108,6 +126,7 @@ const UserDetail = () => {
 
   return (
     <CustomSafeAreaView>
+      <LoadingOverlay visible={isLoadingUserUpdate} message="Actualizando..." />
       <ScrollView style={styles.container}>
         <Card style={styles.card}>
           <Card.Content>
@@ -123,9 +142,7 @@ const UserDetail = () => {
                     { backgroundColor: getRoleColor(role) },
                   ]}
                 >
-                  <Text style={styles.roleText}>
-                    {roleDisplayNames[role]}
-                  </Text>
+                  <Text style={styles.roleText}>{roleDisplayNames[role]}</Text>
                 </View>
               ))}
             </View>
@@ -141,38 +158,64 @@ const UserDetail = () => {
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Cambiar Roles
               </Text>
-              {roles.map((role) => (
-                <Card
+              {roles?.map((role) => (
+                <Controller
                   key={role.value}
-                  style={[
-                    styles.roleCard,
-                    selectedRoles.includes(role.value) && styles.selectedRoleCard,
-                  ]}
-                  onPress={() => handleRoleToggle(role.value)}
-                >
-                  <Card.Content style={styles.roleCardContent}>
-                    <View style={styles.roleCardLeft}>
-                      <Checkbox
-                        status={selectedRoles.includes(role.value) ? 'checked' : 'unchecked'}
-                        onPress={() => handleRoleToggle(role.value)}
-                      />
-                      <View style={styles.roleCardTextContainer}>
-                        <Text variant="titleMedium" style={styles.roleLabel}>
-                          {role.label}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.roleDescription}>
-                          {role.description}
-                        </Text>
-                      </View>
-                    </View>
-                    <View
+                  control={control}
+                  name="roles"
+                  render={({ field: { onChange, value } }) => (
+                    <Card
                       style={[
-                        styles.roleIndicator,
-                        { backgroundColor: getRoleColor(role.value) },
+                        styles.roleCard,
+                        value?.includes(role.value) && styles.selectedRoleCard,
                       ]}
-                    />
-                  </Card.Content>
-                </Card>
+                      onPress={() => {
+                        const newRoles = value?.includes(role.value)
+                          ? value.filter((r) => r !== role.value)
+                          : [...(value || []), role.value];
+                        onChange(newRoles);
+                      }}
+                    >
+                      <Card.Content style={styles.roleCardContent}>
+                        <View style={styles.roleCardLeft}>
+                          <Checkbox
+                            status={
+                              value?.includes(role.value)
+                                ? "checked"
+                                : "unchecked"
+                            }
+                            onPress={() => {
+                              const newRoles = value?.includes(role.value)
+                                ? value.filter((r) => r !== role.value)
+                                : [...(value || []), role.value];
+                              onChange(newRoles);
+                            }}
+                          />
+                          <View style={styles.roleCardTextContainer}>
+                            <Text
+                              variant="titleMedium"
+                              style={styles.roleLabel}
+                            >
+                              {role.label}
+                            </Text>
+                            <Text
+                              variant="bodySmall"
+                              style={styles.roleDescription}
+                            >
+                              {role.description}
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={[
+                            styles.roleIndicator,
+                            { backgroundColor: getRoleColor(role.value) },
+                          ]}
+                        />
+                      </Card.Content>
+                    </Card>
+                  )}
+                />
               ))}
             </View>
           </Card.Content>
@@ -180,9 +223,9 @@ const UserDetail = () => {
 
         <Button
           mode="contained"
-          onPress={() => setShowSaveDialog(true)}
+          onPress={handleSubmit(onSubmit)}
           style={styles.saveButton}
-          disabled={selectedRoles.length === 0}
+          disabled={selectedRoles?.length === 0}
         >
           Guardar Cambios
         </Button>
@@ -196,12 +239,15 @@ const UserDetail = () => {
             <Dialog.Content>
               <Text>
                 ¿Estás seguro de que deseas cambiar los roles de {user?.name} a{" "}
-                {selectedRoles.map(role => roleDisplayNames[role]).join(", ")}?
+                {selectedRoles
+                  ?.map((role) => roleDisplayNames[role])
+                  .join(", ")}
+                ?
               </Text>
             </Dialog.Content>
             <Dialog.Actions>
               <Button onPress={() => setShowSaveDialog(false)}>Cancelar</Button>
-              <Button onPress={handleSave}>Guardar</Button>
+              <Button onPress={() => handleSave()}>Guardar</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
