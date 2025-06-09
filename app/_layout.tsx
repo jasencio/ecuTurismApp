@@ -21,8 +21,10 @@ export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
       <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <Stack screenOptions={{ headerShown: false }}>
+        <PersistGate loading={null} persistor={persistor} onBeforeLift={() => {
+          console.log('PersistGate: Before lift');
+        }}>
+          <Stack>
             <Stack.Screen 
               name="index" 
               options={{ 

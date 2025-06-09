@@ -9,7 +9,8 @@ import { LoginRequest } from "@/types/Session";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
 import { fetchLogin } from "@/slices/loginSlice";
-import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { loadingSelector, sessionDataSelector } from "@/selectors/sessionSelector";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 // Define the form schema with Zod
 const loginSchema = z.object({
@@ -21,8 +22,8 @@ const loginSchema = z.object({
 const LoginScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
+  const isLoading = useSelector(loadingSelector);
   const router = useRouter();
-  
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -64,6 +65,7 @@ const LoginScreen = () => {
         justifyContent: "center",
       }}
     >
+      <LoadingOverlay visible={isLoading} message="Espere..." />
       {/* Title */}
       <Text variant="headlineLarge" style={{ fontWeight: "bold" }}>
         Iniciar sesión

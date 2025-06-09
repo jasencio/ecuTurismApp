@@ -1,9 +1,10 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import SessionReducer from '@/slices/loginSlice';
-import { persistReducer, persistStore } from 'redux-persist';
+import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileReducer from '@/slices/profileSlice';
 import UsersReducer from '@/slices/usersSlice';
+import { thunk } from 'redux-thunk';
 
 const persistConfig = {
   key: 'root',
@@ -22,12 +23,15 @@ export const rootReducer = combineReducers({
 })
 
 // Create store
-const store = configureStore({
+export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Disable serializable check for redux-persist
-    }),
+      serializableCheck: {
+        // 👇 Ignore redux-persist actions
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }).concat(thunk),
 });
 
 // Create persistor
