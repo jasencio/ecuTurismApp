@@ -1,9 +1,28 @@
-import CustomSafeAreaView from '@/components/CustomSafeAreaView';
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, TextInput, Button, useTheme, Surface, Switch } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import AdminSearch from '@/components/AdminSearch';
+import CustomSafeAreaView from "@/components/CustomSafeAreaView";
+import React from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import {
+  Text,
+  TextInput,
+  Button,
+  useTheme,
+  Surface,
+  Switch,
+} from "react-native-paper";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import AdminSearch from "@/components/AdminSearch";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "@/store";
+import { fetchOrganization } from "@/slices/organizationSlice";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import {
+  loadingOrganizationSelector,
+  organizationSelector,
+} from "@/selectors/organizationSelector";
+import LoadingScreen from "@/components/LoadingScreen";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 interface User {
   id: string;
@@ -11,48 +30,73 @@ interface User {
   email: string;
 }
 
-// Mock data - replace with actual API call
-const getOrganization = (id: string) => ({
-  id,
-  name: 'Explora Sierra Nevada',
-  description: 'Organización dedicada a la exploración y conservación de la Sierra Nevada.',
-  adminId: '1',
-  adminName: 'Juan Pérez',
-  adminEmail: 'juan.perez@explorasierranevada.com',
-  phone: '+34 123 456 789',
-  address: 'Calle Principal 123, Granada',
-  status: 'active' as const,
+// Form validation schema
+const organizationSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido"),
+  description: z.string().min(1, "La descripción es requerida"),
+  adminId: z.string().min(1, "El administrador es requerido"),
+  adminName: z.string().min(1, "El nombre del administrador es requerido"),
+  adminEmail: z.string().email("Email inválido"),
+  phone: z.string().min(1, "El teléfono es requerido"),
+  address: z.string().min(1, "La dirección es requerida"),
+  status: z.boolean(),
 });
+
+type OrganizationFormData = z.infer<typeof organizationSchema>;
+
+
 
 const OrganizationEdit = () => {
   const theme = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const initialData = getOrganization(id);
+  const dispatch = useDispatch<AppDispatch>();
+  const sessionData = useSelector(sessionDataSelector);
+  const organization = useSelector(organizationSelector);
+  const isLoadingOrganization = useSelector(loadingOrganizationSelector);
 
-  const [formData, setFormData] = useState({
-    name: initialData.name,
-    description: initialData.description,
-    adminId: initialData.adminId,
-    adminName: initialData.adminName,
-    adminEmail: initialData.adminEmail,
-    phone: initialData.phone,
-    address: initialData.address,
-    status: initialData.status === 'active',
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<OrganizationFormData>({
+    resolver: zodResolver(organizationSchema),
+    defaultValues: {
+      name: organization?.name,
+      description: organization?.description,
+      adminId: organization?.adminId,
+      adminName: organization?.adminName,
+      adminEmail: organization?.adminEmail,
+      phone: organization?.phone,
+      address: organization?.address,
+      status: organization?.status === "active",
+    },
   });
 
+  const fetchOrganizationData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(fetchOrganization(id as string));
+    }
+  }, [sessionData, dispatch]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrganizationData();
+    }, [fetchOrganizationData])
+  );
+
   const handleAdminSelect = (user: User) => {
-    setFormData(prev => ({
-      ...prev,
-      adminId: user.id,
-      adminName: user.name,
-      adminEmail: user.email,
-    }));
+    setValue("adminId", user.id);
+    setValue("adminName", user.name);
+    setValue("adminEmail", user.email);
   };
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    console.log('Saving organization:', { ...formData, status: formData.status ? 'active' : 'inactive' });
+  const onSubmit = (data: OrganizationFormData) => {
+    console.log("Saving organization:", {
+      ...data,
+      status: data.status ? "active" : "inactive",
+    });
     router.back();
   };
 
@@ -61,80 +105,156 @@ const OrganizationEdit = () => {
   };
 
   const initialAdmin = {
-    id: initialData.adminId,
-    name: initialData.adminName,
-    email: initialData.adminEmail,
+    id: organization?.adminId,
+    name: organization?.adminName,
+    email: organization?.adminEmail,
   };
+
+  if (isLoadingOrganization) {
+    return <LoadingScreen />;
+  }
 
   return (
     <CustomSafeAreaView>
       <View style={styles.container}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={1}
+          >
+            <Text
+              variant="titleMedium"
+              style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+            >
               Información General
             </Text>
-            
-            <TextInput
-              label="Nombre de la organización"
-              value={formData.name}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-              style={styles.input}
-              mode="outlined"
-            />
 
-            <TextInput
-              label="Descripción"
-              value={formData.description}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-              style={styles.input}
-              mode="outlined"
-              multiline
-              numberOfLines={3}
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Nombre de la organización"
+                  value={value}
+                  onChangeText={onChange}
+                  style={styles.input}
+                  mode="outlined"
+                  error={!!errors.name}
+                />
+              )}
             />
+            {errors.name && (
+              <Text style={styles.errorText}>{errors.name.message}</Text>
+            )}
 
-            <TextInput
-              label="Dirección"
-              value={formData.address}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
-              style={styles.input}
-              mode="outlined"
+            <Controller
+              control={control}
+              name="description"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Descripción"
+                  value={value}
+                  onChangeText={onChange}
+                  style={styles.input}
+                  mode="outlined"
+                  multiline
+                  numberOfLines={3}
+                  error={!!errors.description}
+                />
+              )}
             />
+            {errors.description && (
+              <Text style={styles.errorText}>{errors.description.message}</Text>
+            )}
 
-            <TextInput
-              label="Teléfono"
-              value={formData.phone}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
-              style={styles.input}
-              mode="outlined"
-              keyboardType="phone-pad"
+            <Controller
+              control={control}
+              name="address"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Dirección"
+                  value={value}
+                  onChangeText={onChange}
+                  style={styles.input}
+                  mode="outlined"
+                  error={!!errors.address}
+                />
+              )}
             />
+            {errors.address && (
+              <Text style={styles.errorText}>{errors.address.message}</Text>
+            )}
+
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Teléfono"
+                  value={value}
+                  onChangeText={onChange}
+                  style={styles.input}
+                  mode="outlined"
+                  keyboardType="phone-pad"
+                  error={!!errors.phone}
+                />
+              )}
+            />
+            {errors.phone && (
+              <Text style={styles.errorText}>{errors.phone.message}</Text>
+            )}
           </Surface>
 
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={1}
+          >
+            <Text
+              variant="titleMedium"
+              style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+            >
               Administrador
             </Text>
 
-            <AdminSearch onSelect={handleAdminSelect} initialValue={initialAdmin} />
+            <AdminSearch
+              onSelect={handleAdminSelect}
+              initialValue={initialAdmin}
+            />
+            {errors.adminId && (
+              <Text style={styles.errorText}>{errors.adminId.message}</Text>
+            )}
           </Surface>
 
-          <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={1}
+          >
             <View style={styles.statusContainer}>
-              <Text variant="titleMedium" style={[styles.statusLabel, { color: theme.colors.onSurface }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.statusLabel, { color: theme.colors.onSurface }]}
+              >
                 Estado
               </Text>
               <View style={styles.switchContainer}>
-                <Text style={[styles.statusText, { color: theme.colors.onSurfaceVariant }]}>
-                  {formData.status ? 'Activo' : 'Inactivo'}
+                <Text
+                  style={[
+                    styles.statusText,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  {control._formValues.status ? "Activo" : "Inactivo"}
                 </Text>
-                <Switch
-                  value={formData.status}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                <Controller
+                  control={control}
+                  name="status"
+                  render={({ field: { onChange, value } }) => (
+                    <Switch value={value} onValueChange={onChange} />
+                  )}
                 />
               </View>
             </View>
@@ -150,9 +270,8 @@ const OrganizationEdit = () => {
             </Button>
             <Button
               mode="contained"
-              onPress={handleSave}
+              onPress={handleSubmit(onSubmit)}
               style={[styles.button, styles.saveButton]}
-              disabled={!formData.adminId}
             >
               Guardar
             </Button>
@@ -166,7 +285,7 @@ const OrganizationEdit = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   scrollView: {
     flex: 1,
@@ -182,29 +301,34 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
-    marginBottom: 12,
+    marginBottom: 4,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginBottom: 8,
   },
   statusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   statusLabel: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   statusText: {
     fontSize: 16,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 8,
   },
@@ -212,11 +336,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cancelButton: {
-    borderColor: '#666',
+    borderColor: "#666",
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
   },
 });
 
-export default OrganizationEdit; 
+export default OrganizationEdit;
