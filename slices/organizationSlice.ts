@@ -2,6 +2,12 @@ import { Organization, OrganizationListResponse } from "@/types/Organization";
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
+interface ImagePickerResult {
+  uri: string;
+  type?: string;
+  fileName?: string;
+}
+
 interface OrganizationState {
   organizationsList?: OrganizationListResponse;
   organization?: Organization;
@@ -26,7 +32,9 @@ export const fetchOrganizations = createAsyncThunk(
   "organizations/fetchOrganizations",
   async (_: void, thunkAPI) => {
     try {
-      const response = await axiosInstance.get<OrganizationListResponse>("config/organization");
+      const response = await axiosInstance.get<OrganizationListResponse>(
+        "config/organization"
+      );
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al obtener las organizaciones");
@@ -38,7 +46,9 @@ export const fetchOrganization = createAsyncThunk(
   "organizations/fetchOrganization",
   async (idOrganization: string, thunkAPI) => {
     try {
-      const response = await axiosInstance.get<Organization>(`config/organization/${idOrganization}`);
+      const response = await axiosInstance.get<Organization>(
+        `config/organization/${idOrganization}`
+      );
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al obtener la organización");
@@ -48,9 +58,12 @@ export const fetchOrganization = createAsyncThunk(
 
 export const createOrganization = createAsyncThunk(
   "organizations/createOrganization",
-  async (organization: Omit<Organization, 'id'>, thunkAPI) => {
+  async (organization: Omit<Organization, "id">, thunkAPI) => {
     try {
-      const response = await axiosInstance.post<Organization>("config/organization", organization);
+      const response = await axiosInstance.post<Organization>(
+        "config/organization",
+        organization
+      );
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al crear la organización");
@@ -60,11 +73,38 @@ export const createOrganization = createAsyncThunk(
 
 export const updateOrganization = createAsyncThunk(
   "organizations/updateOrganization",
-  async (organization: Organization, thunkAPI) => {
+  async (
+    {
+      organization,
+      image,
+    }: { organization: Organization; image?: ImagePickerResult },
+    thunkAPI
+  ) => {
     try {
-      const response = await axiosInstance.put<Organization>(`config/organization/${organization.id}`, organization);
+      // Convert image to base64 if provided
+      let imageBase64: string | undefined;
+      if (image) {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        imageBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      const payload: Organization & { imageBase64?: string } = {
+        ...organization,
+        ...(imageBase64 && { imageBase64 }),
+      };
+
+      const response = await axiosInstance.put<Organization>(
+        `config/organization/${organization.id}`,
+        payload
+      );
       return response?.data;
     } catch (error: any) {
+      console.log("🚀 ~ error:", error);
       return thunkAPI.rejectWithValue("Error al actualizar la organización");
     }
   }
@@ -89,7 +129,8 @@ export const organizationSlice = createSlice({
       })
       .addCase(fetchOrganizations.rejected, (state, action) => {
         state.loadingOrganizationsList = false;
-        state.error = action?.error?.message || "Error al obtener las organizaciones";
+        state.error =
+          action?.error?.message || "Error al obtener las organizaciones";
       })
       // Fetch Single Organization
       .addCase(fetchOrganization.pending, (state) => {
@@ -103,7 +144,8 @@ export const organizationSlice = createSlice({
       })
       .addCase(fetchOrganization.rejected, (state, action) => {
         state.loadingOrganization = false;
-        state.error = action?.error?.message || "Error al obtener la organización";
+        state.error =
+          action?.error?.message || "Error al obtener la organización";
       })
       // Create Organization
       .addCase(createOrganization.pending, (state) => {
@@ -118,7 +160,8 @@ export const organizationSlice = createSlice({
       })
       .addCase(createOrganization.rejected, (state, action) => {
         state.loadingOrganizationUpdate = false;
-        state.error = action?.error?.message || "Error al crear la organización";
+        state.error =
+          action?.error?.message || "Error al crear la organización";
         state.successOrganizationUpdate = false;
       })
       // Update Organization
@@ -134,10 +177,11 @@ export const organizationSlice = createSlice({
       })
       .addCase(updateOrganization.rejected, (state, action) => {
         state.loadingOrganizationUpdate = false;
-        state.error = action?.error?.message || "Error al actualizar la organización";
+        state.error =
+          action?.error?.message || "Error al actualizar la organización";
         state.successOrganizationUpdate = false;
       });
   },
 });
 
-export default organizationSlice.reducer; 
+export default organizationSlice.reducer;

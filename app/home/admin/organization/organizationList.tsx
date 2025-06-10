@@ -1,6 +1,6 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Image } from "react-native";
 import {
   Text,
   Button,
@@ -15,27 +15,29 @@ import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { AppDispatch } from "@/store";
 import { loadingOrganizationsListSelector, organizationsListSelector } from "@/selectors/organizationSelector";
 import LoadingScreen from "@/components/LoadingScreen";
+import { Organization } from "@/types/Organization";
 
 interface OrganizationCardProps {
-  id: string;
-  name: string;
-  adminName: string;
-  adminEmail: string;
-  status: "active" | "inactive";
+  organization: Organization;
   onEdit: (id: string, event: any) => void;
   onToggleStatus: (id: string) => void;
 }
 
 const OrganizationCard = ({
-  id,
-  name,
-  adminName,
-  adminEmail,
-  status,
+  organization,
   onEdit,
   onToggleStatus,
 }: OrganizationCardProps) => {
+  
   const router = useRouter();
+  const { id, name, address, image, isActive } = organization ?? {};
+
+  const handleOrganizationDetail = () => {
+    router.push({
+      pathname: "/home/admin/organization/organizationDetail",
+      params: { id: organization.id },
+    });
+  };
 
   return (
     <Surface style={styles.card} elevation={2}>
@@ -47,16 +49,16 @@ const OrganizationCard = ({
           <View
             style={[
               styles.statusBadge,
-              { backgroundColor: status === "active" ? "#4CAF50" : "#9E9E9E" },
+              { backgroundColor: isActive ? "#4CAF50" : "#9E9E9E" },
             ]}
           >
             <Text style={styles.statusText}>
-              {status === "active" ? "Activo" : "Inactivo"}
+              {isActive ? "Activo" : "Inactivo"}
             </Text>
           </View>
         </View>
         <IconButton
-          icon={status === "active" ? "eye-off" : "eye"}
+          icon={isActive ? "eye-off" : "eye"}
           size={20}
           onPress={() => onToggleStatus(id)}
         />
@@ -64,15 +66,19 @@ const OrganizationCard = ({
 
       <View style={styles.cardContent}>
         <View style={styles.detailsContainer}>
-          <View style={styles.adminSection}>
+          {image?.publicUrl && (
+            <Image
+              source={{ uri: image.publicUrl }}
+              style={styles.organizationImage}
+              resizeMode="cover"
+            />
+          )}
+          <View style={styles.addressSection}>
             <Text variant="titleSmall" style={styles.sectionTitle}>
-              Administrador
+              Dirección
             </Text>
-            <Text variant="bodyMedium" style={styles.adminName}>
-              {adminName}
-            </Text>
-            <Text variant="bodySmall" style={styles.adminEmail}>
-              {adminEmail}
+            <Text variant="bodyMedium" style={styles.addressText}>
+              {address}
             </Text>
           </View>
         </View>
@@ -89,9 +95,7 @@ const OrganizationCard = ({
         </Button>
         <Button
           mode="contained"
-          onPress={() =>
-            router.push("/home/admin/organization/organizationDetail")
-          }
+          onPress={handleOrganizationDetail}
           style={styles.viewButton}
         >
           Ver detalles
@@ -162,7 +166,7 @@ const OrganizationList = () => {
           {organizationsList?.map((org) => (
             <OrganizationCard
               key={org.id}
-              {...org}
+              organization={org}
               onEdit={handleEditPress}
               onToggleStatus={handleToggleStatus}
             />
@@ -243,19 +247,22 @@ const styles = StyleSheet.create({
   detailsContainer: {
     gap: 12,
   },
-  adminSection: {
+  organizationImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  addressSection: {
     gap: 4,
   },
   sectionTitle: {
     color: "#666",
     marginBottom: 4,
   },
-  adminName: {
+  addressText: {
     color: "#1a1a1a",
     fontWeight: "500",
-  },
-  adminEmail: {
-    color: "#666",
   },
   cardActions: {
     flexDirection: "row",

@@ -1,6 +1,6 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Image } from "react-native";
 import {
   Text,
   TextInput,
@@ -10,10 +10,9 @@ import {
   Switch,
 } from "react-native-paper";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import AdminSearch from "@/components/AdminSearch";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
-import { fetchOrganization } from "@/slices/organizationSlice";
+import { fetchOrganization, updateOrganization } from "@/slices/organizationSlice";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import {
   loadingOrganizationSelector,
@@ -23,28 +22,19 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import * as ImagePicker from 'expo-image-picker';
 
 // Form validation schema
 const organizationSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
-  adminId: z.string().min(1, "El administrador es requerido"),
-  adminName: z.string().min(1, "El nombre del administrador es requerido"),
-  adminEmail: z.string().email("Email inválido"),
   phone: z.string().min(1, "El teléfono es requerido"),
   address: z.string().min(1, "La dirección es requerida"),
-  status: z.boolean(),
+  isActive: z.boolean(),
+  image: z.any().optional(),
 });
 
 type OrganizationFormData = z.infer<typeof organizationSchema>;
-
-
 
 const OrganizationEdit = () => {
   const theme = useTheme();
@@ -54,6 +44,7 @@ const OrganizationEdit = () => {
   const sessionData = useSelector(sessionDataSelector);
   const organization = useSelector(organizationSelector);
   const isLoadingOrganization = useSelector(loadingOrganizationSelector);
+  const [imageUri, setImageUri] = React.useState<string | null>(null);
 
   const {
     control,
@@ -63,16 +54,24 @@ const OrganizationEdit = () => {
   } = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
-      name: organization?.name,
-      description: organization?.description,
-      adminId: organization?.adminId,
-      adminName: organization?.adminName,
-      adminEmail: organization?.adminEmail,
-      phone: organization?.phone,
-      address: organization?.address,
-      status: organization?.status === "active",
+      name: "",
+      description: "",
+      phone: "",
+      address: "",
+      isActive: false,
     },
   });
+
+  // Set form values when organization data is loaded
+  React.useEffect(() => {
+    if (organization && !isLoadingOrganization) {
+      setValue("name", organization.name);
+      setValue("description", organization.description);
+      setValue("phone", organization.phone);
+      setValue("address", organization.address);
+      setValue("isActive", organization.isActive);
+    }
+  }, [organization, isLoadingOrganization, setValue]);
 
   const fetchOrganizationData = React.useCallback(() => {
     if (sessionData) {
@@ -86,28 +85,32 @@ const OrganizationEdit = () => {
     }, [fetchOrganizationData])
   );
 
-  const handleAdminSelect = (user: User) => {
-    setValue("adminId", user.id);
-    setValue("adminName", user.name);
-    setValue("adminEmail", user.email);
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      setValue('image', result.assets[0]);
+    }
   };
 
   const onSubmit = (data: OrganizationFormData) => {
-    console.log("Saving organization:", {
-      ...data,
-      status: data.status ? "active" : "inactive",
-    });
-    router.back();
+    dispatch(updateOrganization({
+      organization: {
+        ...data,
+        id: id as string
+      },
+      image: data.image
+    }));
   };
 
   const handleCancel = () => {
     router.back();
-  };
-
-  const initialAdmin = {
-    id: organization?.adminId,
-    name: organization?.adminName,
-    email: organization?.adminEmail,
   };
 
   if (isLoadingOrganization) {
@@ -122,6 +125,35 @@ const OrganizationEdit = () => {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
+          <Surface
+            style={[styles.section, { backgroundColor: theme.colors.surface }]}
+            elevation={1}
+          >
+            <Text
+              variant="titleMedium"
+              style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+            >
+              Imagen de la Organización
+            </Text>
+            
+            <View style={styles.imageContainer}>
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.image} />
+              ) : (
+                <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
+                  <Text style={{ color: theme.colors.onSurfaceVariant }}>Sin imagen</Text>
+                </View>
+              )}
+              <Button
+                mode="outlined"
+                onPress={pickImage}
+                style={styles.imageButton}
+              >
+                Seleccionar Imagen
+              </Button>
+            </View>
+          </Surface>
+
           <Surface
             style={[styles.section, { backgroundColor: theme.colors.surface }]}
             elevation={1}
@@ -213,26 +245,6 @@ const OrganizationEdit = () => {
             style={[styles.section, { backgroundColor: theme.colors.surface }]}
             elevation={1}
           >
-            <Text
-              variant="titleMedium"
-              style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-            >
-              Administrador
-            </Text>
-
-            <AdminSearch
-              onSelect={handleAdminSelect}
-              initialValue={initialAdmin}
-            />
-            {errors.adminId && (
-              <Text style={styles.errorText}>{errors.adminId.message}</Text>
-            )}
-          </Surface>
-
-          <Surface
-            style={[styles.section, { backgroundColor: theme.colors.surface }]}
-            elevation={1}
-          >
             <View style={styles.statusContainer}>
               <Text
                 variant="titleMedium"
@@ -251,7 +263,7 @@ const OrganizationEdit = () => {
                 </Text>
                 <Controller
                   control={control}
-                  name="status"
+                  name="isActive"
                   render={({ field: { onChange, value } }) => (
                     <Switch value={value} onValueChange={onChange} />
                   )}
@@ -340,6 +352,25 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: "#4CAF50",
+  },
+  imageContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+  },
+  imagePlaceholder: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageButton: {
+    width: '100%',
   },
 });
 

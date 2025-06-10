@@ -1,33 +1,19 @@
+import { Organization } from '@/types/Organization';
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { Text, Surface, useTheme, IconButton } from 'react-native-paper';
 
 export interface OrganizationDetailCardProps {
-  name: string;
-  description: string;
-  adminName: string;
-  adminEmail: string;
-  phone: string;
-  address: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-  updatedAt: string;
+  organization?: Organization;
   onEdit?: () => void;
 }
 
 const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
-  name,
-  description,
-  adminName,
-  adminEmail,
-  phone,
-  address,
-  status,
-  createdAt,
-  updatedAt,
+  organization,
   onEdit,
 }) => {
   const theme = useTheme();
+  const { name, description, phone, address, isActive, createdAt, updatedAt, image } = organization ?? {};
 
   return (
     <View style={styles.container}>
@@ -36,9 +22,9 @@ const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
           <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onSurface }]}> 
             {name}
           </Text>
-          <View style={[styles.statusBadge, { backgroundColor: status === 'active' ? '#4CAF50' : '#9E9E9E' }]}> 
+          <View style={[styles.statusBadge, { backgroundColor: isActive ? '#4CAF50' : '#9E9E9E' }]}> 
             <Text style={styles.statusText}>
-              {status === 'active' ? 'Activo' : 'Inactivo'}
+              {isActive ? 'Activo' : 'Inactivo'}
             </Text>
           </View>
         </View>
@@ -51,11 +37,21 @@ const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
         )}
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {image?.publicUrl && (
+          <Surface style={[styles.imageContainer, { backgroundColor: theme.colors.surface }]} elevation={1}>
+            <Image
+              source={{ uri: image.publicUrl }}
+              style={styles.organizationImage}
+              resizeMode="cover"
+            />
+          </Surface>
+        )}
+
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> 
             Información General
@@ -82,28 +78,6 @@ const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
             </Text>
             <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}> 
               {phone}
-            </Text>
-          </View>
-        </Surface>
-
-        <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> 
-            Administrador
-          </Text>
-          <View style={styles.infoRow}>
-            <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}> 
-              Nombre:
-            </Text>
-            <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}> 
-              {adminName}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}> 
-              Email:
-            </Text>
-            <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}> 
-              {adminEmail}
             </Text>
           </View>
         </Surface>
@@ -142,7 +116,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 16,
     paddingBottom: 8,
   },
@@ -150,10 +124,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
+    marginRight: 8,
   },
   title: {
     fontWeight: 'bold',
+    flexShrink: 1,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -171,6 +148,14 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     gap: 16,
+  },
+  imageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  organizationImage: {
+    width: '100%',
+    height: 200,
   },
   section: {
     borderRadius: 12,
