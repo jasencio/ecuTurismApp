@@ -17,3 +17,17 @@ export const errorSelector = createSelector(
   adminCompanyState,
   (state) => state.error
 );
+
+export const loadingOrganizationUpdateSelector = createSelector(
+  adminCompanyState,
+  (state) => state.loadingOrganizationUpdate
+);
+
+export const successOrganizationUpdateSelector = createSelector(
+  adminCompanyState,
+  (state) => state.successOrganizationUpdate
+);
+
+
+
+

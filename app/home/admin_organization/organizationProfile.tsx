@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loadingSelector, organizationSelector } from '@/selectors/adminCompanySelector';
 import { sessionDataSelector } from '@/selectors/sessionSelector';
 import { getAdminCompanyOrganization } from '@/slices/adminCompanySlice';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import LoadingScreen from '@/components/LoadingScreen';
 
 const OrganizationProfileScreen = () => {
@@ -31,9 +31,13 @@ const OrganizationProfileScreen = () => {
     return <LoadingScreen />
   }
 
+  const handleEdit = () => {
+    router.push("/home/admin_organization/organizationProfileUpdate");
+  };
+
   return (
     <CustomSafeAreaView>
-      <OrganizationDetailCard organization={organization} />
+      <OrganizationDetailCard organization={organization} onEdit={()=> handleEdit()} />
     </CustomSafeAreaView>
   );
 };
