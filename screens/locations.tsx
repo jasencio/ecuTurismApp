@@ -1,65 +1,39 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
-  ImageSourcePropType,
-  useWindowDimensions,
 } from "react-native";
-import { Button, Card, Text, ActivityIndicator } from "react-native-paper";
+import { Button, Card, Text } from "react-native-paper";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-// Import all available images
-const locationImages = {
-  bikePark: {
-    small: require('../assets/images/places/optimized/bike_park_small.jpg'),
-    medium: require('../assets/images/places/optimized/bike_park_medium.jpg'),
-    large: require('../assets/images/places/optimized/bike_park_large.jpg'),
-  },
-  sendero1: {
-    small: require('../assets/images/places/optimized/sendero1_small.jpg'),
-    medium: require('../assets/images/places/optimized/sendero1_medium.jpg'),
-    large: require('../assets/images/places/optimized/sendero1_large.jpg'),
-  },
-  sendero2: {
-    small: require('../assets/images/places/optimized/sendero2_small.jpg'),
-    medium: require('../assets/images/places/optimized/sendero2_medium.jpg'),
-    large: require('../assets/images/places/optimized/sendero2_large.jpg'),
-  }
-};
-
-// Array of image keys for random selection
-const imageKeys = ['bikePark', 'sendero1', 'sendero2'];
+import { useDispatch, useSelector } from "react-redux";
+import { loadingOrganizationsListSelector, organizationsListSelector } from "@/selectors/explorerSelector";
+import { Organization } from "@/types/Organization";
+import LoadingScreen from "@/components/LoadingScreen";
+import { getOrganizations } from "@/slices/explorerSlice";
+import { AppDispatch } from "@/store";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
 
 interface LocationCardProps {
-  title: string;
-  description: string;
-  address: string;
-  imageKey: keyof typeof locationImages;
+  organization: Organization;
 }
 
-const CustomCard = ({ title, description, address, imageKey }: LocationCardProps) => {
+const CustomCard = ({ organization }: LocationCardProps) => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { description, address, name, image } = organization;
+  const publicUrl = image?.publicUrl;
   
-  // Choose image size based on screen width
-  const imageSize = useMemo(() => {
-    if (width < 360) return 'small';
-    if (width < 768) return 'medium';
-    return 'large';
-  }, [width]);
-
   return (
     <TouchableWithoutFeedback onPress={() => router.push("/home/explorer/route/routeList")}>
       <Card style={styles.card} mode="elevated">
         <Card.Cover 
-          source={locationImages[imageKey][imageSize]} 
+          source={{ uri: publicUrl }} 
           style={styles.cardImage}
         />
         <Card.Content style={styles.cardContent}>
-          <Text variant="titleLarge" style={styles.cardTitle}>{title}</Text>
+          <Text variant="titleLarge" style={styles.cardTitle}>{name}</Text>
           <Text variant="bodyMedium" style={styles.description} numberOfLines={2}>
             {description}
           </Text>
@@ -85,41 +59,29 @@ const CustomCard = ({ title, description, address, imageKey }: LocationCardProps
   );
 };
 
-type ImageKey = keyof typeof locationImages;
-
 const Locations = () => {
-  // Function to get a random image key with proper typing
-  const getRandomImageKey = (): ImageKey => {
-    const randomIndex = Math.floor(Math.random() * imageKeys.length);
-    return imageKeys[randomIndex] as ImageKey;
-  };
 
-  const sampleLocations = [
-    {
-      title: "Bike Park Sierra Nevada",
-      description: "Ruta de montaña con impresionantes vistas panorámicas y senderos técnicos para todos los niveles.",
-      address: "Carretera de la Sierra Nevada, km 23, 18196 Monachil, Granada",
-      imageKey: 'bikePark' as ImageKey
-    },
-    {
-      title: "Sendero del Río Verde",
-      description: "Paseo tranquilo junto al río, perfecto para familias y principiantes. Naturaleza exuberante y cascadas.",
-      address: "Camino del Río Verde, 18196 Monachil, Granada",
-      imageKey: getRandomImageKey()
-    },
-    {
-      title: "Cumbre del Veleta",
-      description: "Desafiante ruta de alta montaña con vistas espectaculares de la Sierra Nevada.",
-      address: "Pradollano, 18196 Sierra Nevada, Granada",
-      imageKey: getRandomImageKey()
-    },
-    {
-      title: "Bosque de la Alhambra",
-      description: "Ruta histórica a través de bosques centenarios con vistas a la Alhambra.",
-      address: "Calle Real de la Alhambra, s/n, 18009 Granada",
-      imageKey: getRandomImageKey()
+  const organizations = useSelector(organizationsListSelector);
+  const loading = useSelector(loadingOrganizationsListSelector);
+  const sessionData = useSelector(sessionDataSelector);
+  const dispatch = useDispatch<AppDispatch>();
+
+  const getOrganizationsData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getOrganizations());
     }
-  ];
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      getOrganizationsData();
+    }, [getOrganizationsData])
+  );
+
+  if (loading) {
+    return <LoadingScreen />
+  }
 
   return (
     <View style={styles.container}>
@@ -135,8 +97,8 @@ const Locations = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {sampleLocations.map((location, index) => (
-          <CustomCard key={index} {...location} />
+        {organizations?.map((organization, index) => (
+          <CustomCard key={index} organization={organization} />
         ))}
       </ScrollView>
     </View>

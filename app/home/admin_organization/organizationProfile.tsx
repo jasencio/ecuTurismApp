@@ -1,24 +1,41 @@
 import React from 'react';
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import OrganizationDetailCard from '@/components/OrganizationDetailCard';
+import { AppDispatch } from '@/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadingSelector, organizationSelector } from '@/selectors/adminCompanySelector';
+import { sessionDataSelector } from '@/selectors/sessionSelector';
+import { getAdminCompanyOrganization } from '@/slices/adminCompanySlice';
+import { useFocusEffect } from 'expo-router';
+import LoadingScreen from '@/components/LoadingScreen';
 
-// Mock data or fetch from API
-const adminOrganization = {
-  name: 'Explora Sierra Nevada',
-  description: 'Organización dedicada a la exploración y conservación de la Sierra Nevada.',
-  adminName: 'Juan Pérez',
-  adminEmail: 'juan.perez@explorasierranevada.com',
-  phone: '+34 123 456 789',
-  address: 'Calle Principal 123, Granada',
-  status: 'active' as const,
-  createdAt: '2024-01-15',
-  updatedAt: '2024-03-20',
+const OrganizationProfileScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const organization = useSelector(organizationSelector);
+  const sessionData = useSelector(sessionDataSelector);
+  const loading = useSelector(loadingSelector);
+
+  const getOrganizationsData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getAdminCompanyOrganization());
+    }
+  }, [sessionData, dispatch]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getOrganizationsData();
+    }, [getOrganizationsData])
+  );
+
+  if (loading) {
+    return <LoadingScreen />
+  }
+
+  return (
+    <CustomSafeAreaView>
+      <OrganizationDetailCard organization={organization} />
+    </CustomSafeAreaView>
+  );
 };
-
-const OrganizationProfileScreen = () => (
-  <CustomSafeAreaView>
-    <OrganizationDetailCard {...adminOrganization} />
-  </CustomSafeAreaView>
-);
 
 export default OrganizationProfileScreen;

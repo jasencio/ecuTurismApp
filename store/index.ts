@@ -5,24 +5,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileReducer from '@/slices/profileSlice';
 import UsersReducer from '@/slices/usersSlice';
 import OrganizationsReducer from '@/slices/organizationSlice';
+import ExplorerReducer from '@/slices/explorerSlice';
+import AdminCompanyReducer from '@/slices/adminCompanySlice';
 import { thunk } from 'redux-thunk';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['session', 'profile', 'users', 'organizations'],
+  whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany'],
 };
 
 const persistedSessionReducer = persistReducer(persistConfig, SessionReducer);
 const persistedProfileReducer = persistReducer(persistConfig, ProfileReducer);
 const persistedUsersReducer = persistReducer(persistConfig, UsersReducer);
 const persistedOrganizationsReducer = persistReducer(persistConfig, OrganizationsReducer);
+const persistedExplorerReducer = persistReducer(persistConfig, ExplorerReducer);
+const persistedAdminCompanyReducer = persistReducer(persistConfig, AdminCompanyReducer);
 
 export const rootReducer = combineReducers({
     session: persistedSessionReducer,
     profile: persistedProfileReducer,
     users: persistedUsersReducer,
     organizations: persistedOrganizationsReducer,
+    explorer: persistedExplorerReducer,
+    adminCompany: persistedAdminCompanyReducer,
 })
 
 // Create store
