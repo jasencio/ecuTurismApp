@@ -14,8 +14,10 @@ interface OrganizationState {
   loadingOrganizationsList: boolean;
   loadingOrganization: boolean;
   loadingOrganizationUpdate: boolean;
+  loadingOrganizationCreate: boolean;
   error: string | null;
   successOrganizationUpdate: boolean;
+  successOrganizationCreate: boolean;
 }
 
 const initialState: OrganizationState = {
@@ -24,12 +26,14 @@ const initialState: OrganizationState = {
   loadingOrganizationsList: false,
   loadingOrganization: false,
   loadingOrganizationUpdate: false,
+  loadingOrganizationCreate: false,
   error: null,
   successOrganizationUpdate: false,
+  successOrganizationCreate: false,
 };
 
-export const fetchOrganizations = createAsyncThunk(
-  "organizations/fetchOrganizations",
+export const getOrganizations = createAsyncThunk(
+  "organizations/getAll",
   async (_: void, thunkAPI) => {
     try {
       const response = await axiosInstance.get<OrganizationListResponse>(
@@ -42,8 +46,8 @@ export const fetchOrganizations = createAsyncThunk(
   }
 );
 
-export const fetchOrganization = createAsyncThunk(
-  "organizations/fetchOrganization",
+export const getOrganization = createAsyncThunk(
+  "organizations/getOne",
   async (idOrganization: string, thunkAPI) => {
     try {
       const response = await axiosInstance.get<Organization>(
@@ -58,11 +62,34 @@ export const fetchOrganization = createAsyncThunk(
 
 export const createOrganization = createAsyncThunk(
   "organizations/createOrganization",
-  async (organization: Omit<Organization, "id">, thunkAPI) => {
+  async (
+    {
+      organization,
+      image,
+    }: { organization: Omit<Organization, "id">; image?: ImagePickerResult },
+    thunkAPI
+  ) => {
     try {
+      // Convert image to base64 if provided
+      let imageBase64: string | undefined;
+      if (image) {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        imageBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      const payload: Omit<Organization, "id"> & { imageBase64?: string } = {
+        ...organization,
+        ...(imageBase64 && { imageBase64 }),
+      };
+
       const response = await axiosInstance.post<Organization>(
         "config/organization",
-        organization
+        payload
       );
       return response?.data;
     } catch (error: any) {
@@ -117,52 +144,52 @@ export const organizationSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch Organizations List
-      .addCase(fetchOrganizations.pending, (state) => {
+      .addCase(getOrganizations.pending, (state) => {
         state.loadingOrganizationsList = true;
         state.organizationsList = undefined;
         state.error = null;
         state.successOrganizationUpdate = false;
       })
-      .addCase(fetchOrganizations.fulfilled, (state, action) => {
+      .addCase(getOrganizations.fulfilled, (state, action) => {
         state.loadingOrganizationsList = false;
         state.organizationsList = action.payload;
       })
-      .addCase(fetchOrganizations.rejected, (state, action) => {
+      .addCase(getOrganizations.rejected, (state, action) => {
         state.loadingOrganizationsList = false;
         state.error =
           action?.error?.message || "Error al obtener las organizaciones";
       })
       // Fetch Single Organization
-      .addCase(fetchOrganization.pending, (state) => {
+      .addCase(getOrganization.pending, (state) => {
         state.loadingOrganization = true;
         state.organization = undefined;
         state.error = null;
       })
-      .addCase(fetchOrganization.fulfilled, (state, action) => {
+      .addCase(getOrganization.fulfilled, (state, action) => {
         state.loadingOrganization = false;
         state.organization = action.payload;
       })
-      .addCase(fetchOrganization.rejected, (state, action) => {
+      .addCase(getOrganization.rejected, (state, action) => {
         state.loadingOrganization = false;
         state.error =
           action?.error?.message || "Error al obtener la organización";
       })
       // Create Organization
       .addCase(createOrganization.pending, (state) => {
-        state.loadingOrganizationUpdate = true;
+        state.loadingOrganizationCreate = true;
         state.error = null;
-        state.successOrganizationUpdate = false;
+        state.successOrganizationCreate = false;
       })
       .addCase(createOrganization.fulfilled, (state, action) => {
-        state.loadingOrganizationUpdate = false;
+        state.loadingOrganizationCreate = false;
         state.organization = action.payload;
-        state.successOrganizationUpdate = true;
+        state.successOrganizationCreate = true;
       })
       .addCase(createOrganization.rejected, (state, action) => {
-        state.loadingOrganizationUpdate = false;
+        state.loadingOrganizationCreate = false;
         state.error =
           action?.error?.message || "Error al crear la organización";
-        state.successOrganizationUpdate = false;
+        state.successOrganizationCreate = false;
       })
       // Update Organization
       .addCase(updateOrganization.pending, (state) => {

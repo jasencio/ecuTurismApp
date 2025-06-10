@@ -12,17 +12,20 @@ import {
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
-import { fetchOrganization, updateOrganization } from "@/slices/organizationSlice";
+import { getOrganization, updateOrganization } from "@/slices/organizationSlice";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import {
   loadingOrganizationSelector,
+  loadingOrganizationUpdateSelector,
   organizationSelector,
+  successOrganizationUpdateSelector,
 } from "@/selectors/organizationSelector";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import * as ImagePicker from 'expo-image-picker';
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 // Form validation schema
 const organizationSchema = z.object({
@@ -44,6 +47,8 @@ const OrganizationEdit = () => {
   const sessionData = useSelector(sessionDataSelector);
   const organization = useSelector(organizationSelector);
   const isLoadingOrganization = useSelector(loadingOrganizationSelector);
+  const isLoadingOrganizationUpdate = useSelector(loadingOrganizationUpdateSelector);
+  const successOrganizationUpdate = useSelector(successOrganizationUpdateSelector);
   const [imageUri, setImageUri] = React.useState<string | null>(null);
 
   const {
@@ -75,7 +80,7 @@ const OrganizationEdit = () => {
 
   const fetchOrganizationData = React.useCallback(() => {
     if (sessionData) {
-      dispatch(fetchOrganization(id as string));
+      dispatch(getOrganization(id as string));
     }
   }, [sessionData, dispatch]);
 
@@ -113,12 +118,19 @@ const OrganizationEdit = () => {
     router.back();
   };
 
+  React.useEffect(() => {
+    if (successOrganizationUpdate) {
+      router.push('/home/admin/organization/organizationList');
+    }
+  }, [successOrganizationUpdate]);
+
   if (isLoadingOrganization) {
     return <LoadingScreen />;
   }
 
   return (
     <CustomSafeAreaView>
+      <LoadingOverlay visible={isLoadingOrganizationUpdate} />
       <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}

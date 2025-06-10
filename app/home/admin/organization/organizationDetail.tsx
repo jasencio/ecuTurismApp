@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { sessionDataSelector } from '@/selectors/sessionSelector';
 import { loadingOrganizationSelector, organizationSelector } from '@/selectors/organizationSelector';
-import { fetchOrganization } from '@/slices/organizationSlice';
+import { getOrganization } from '@/slices/organizationSlice';
 import LoadingScreen from '@/components/LoadingScreen';
 
 const OrganizationDetail = () => {
@@ -19,7 +19,7 @@ const OrganizationDetail = () => {
 
   const fetchOrganizationData = React.useCallback(() => {
     if (sessionData) {
-      dispatch(fetchOrganization(id as string));
+      dispatch(getOrganization(id as string));
     }
   }, [sessionData, dispatch]);
 

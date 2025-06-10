@@ -9,7 +9,7 @@ import {
   Surface,
 } from "react-native-paper";
 import { useFocusEffect, useRouter } from "expo-router";
-import { fetchOrganizations } from "@/slices/organizationSlice";
+import { getOrganizations } from "@/slices/organizationSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { AppDispatch } from "@/store";
@@ -114,7 +114,7 @@ const OrganizationList = () => {
 
   const fetchUsersData = React.useCallback(() => {
     if (sessionData) {
-      dispatch(fetchOrganizations());
+      dispatch(getOrganizations());
     }
   }, [sessionData, dispatch]);
 
