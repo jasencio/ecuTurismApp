@@ -32,3 +32,21 @@ export type RouteUpdate = Omit<Route, 'organization' | 'mainImage' | 'createdAt'
 };
 
 export interface RouteListResponse extends Array<Route> {} 
+
+export const getDifficultyColor = (level?: string) => {
+  switch (level) {
+    case Hardness.LOW: return '#4CAF50';
+    case Hardness.MEDIUM: return '#f5b216';
+    case Hardness.HIGH: return '#F44336';
+    default: return '#666666';
+  }
+};
+
+export const getDifficultyTranslation = (level?: string) => {
+  switch (level) {
+    case Hardness.LOW: return 'Fácil';
+    case Hardness.MEDIUM: return 'Medio';
+    case Hardness.HIGH: return 'Alto';
+    default: return 'No especificado';
+  }
+};

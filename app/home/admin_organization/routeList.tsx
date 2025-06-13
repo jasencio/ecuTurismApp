@@ -15,7 +15,7 @@ import { getRoutes } from "@/slices/adminCompanyRouteSlice";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { selectLoadingRoutesList, selectRoutesList } from "@/selectors/adminCompanyRouteSelector";
 import LoadingScreen from "@/components/LoadingScreen";
-import { Hardness, Route } from "@/types/Route";
+import { getDifficultyColor, getDifficultyTranslation, Hardness, Route } from "@/types/Route";
 
 interface RouteCardProps {
   id: string;
@@ -32,24 +32,6 @@ const RouteCard = ({
 }: RouteCardProps) => {
   const router = useRouter();
   const { name,description,minutes,hardness, mainImage,isActive } = route || {};
-
-  const getDifficultyColor = (level?: string) => {
-    switch (level) {
-      case Hardness.LOW: return '#4CAF50';
-      case Hardness.MEDIUM: return '#FFC107';
-      case Hardness.HIGH: return '#F44336';
-      default: return '#666666';
-    }
-  };
-
-  const getDifficultyTranslation = (level?: string) => {
-    switch (level) {
-      case Hardness.LOW: return 'Fácil';
-      case Hardness.MEDIUM: return 'Medio';
-      case Hardness.HIGH: return 'Alto';
-      default: return 'No especificado';
-    }
-  };
 
   return (
     <Surface style={styles.card} elevation={2}>
@@ -83,7 +65,7 @@ const RouteCard = ({
           <View style={styles.detailRow}>
             <View style={styles.detailItem}>
               <MaterialCommunityIcons name="clock-outline" size={20} color="#666" />
-              <Text variant="bodySmall" style={styles.detailText}>{minutes}</Text>
+              <Text variant="bodySmall" style={styles.detailText}>{minutes} minutos</Text>
             </View>
           </View>
         </View>

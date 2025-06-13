@@ -58,7 +58,7 @@ function AppContent() {
       <Stack.Screen name="home/admin_organization/appoinmentList" options={{ title: "Agendamientos" }} />
       <Stack.Screen name="home/admin_organization/routeCreate" options={{ title: "Crear Ruta" }} />
       <Stack.Screen name="home/admin_organization/routeEdit" options={{ title: "Editar Ruta" }} />
-
+      <Stack.Screen name="home/admin_organization/routeDetail" options={{ title: "Ruta" }} />
       {/*Admin */}
       <Stack.Screen name="home/admin/userList" options={{ title: "Usuarios" }} />
       <Stack.Screen name="home/admin/userDetail" options={{ title: "Cambiar Rol" }} />
