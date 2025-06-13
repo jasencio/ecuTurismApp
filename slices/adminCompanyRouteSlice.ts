@@ -1,12 +1,11 @@
-import { Route, RouteListResponse, Hardness } from "@/types/Route";
+import {
+  Route,
+  RouteListResponse,
+  RouteCreate,
+  RouteUpdate,
+} from "@/types/Route";
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-interface ImagePickerResult {
-  uri: string;
-  type?: string;
-  fileName?: string;
-}
 
 interface RouteState {
   routesList?: RouteListResponse;
@@ -62,39 +61,11 @@ export const getRoute = createAsyncThunk(
 
 export const createRoute = createAsyncThunk(
   "routes/createRoute",
-  async (
-    {
-      route,
-      image,
-    }: {
-      route: Omit<Route, "id" | "createdAt" | "updatedAt" | "mainImage" | "organization">;
-      image?: ImagePickerResult;
-    },
-    thunkAPI
-  ) => {
+  async (route: RouteCreate, thunkAPI) => {
     try {
-      // Convert image to base64 if provided
-      let imageBase64: string | undefined;
-      if (image) {
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-        imageBase64 = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-      }
-
-      const payload: Omit<Route, "id" | "createdAt" | "updatedAt" | "mainImage" | "organization"> & {
-        imageBase64?: string;
-      } = {
-        ...route,
-        ...(imageBase64 && { imageBase64 }),
-      };
-
       const response = await axiosInstance.post<Route>(
         "admin-company/route",
-        payload
+        route
       );
       return response?.data;
     } catch (error: any) {
@@ -105,21 +76,12 @@ export const createRoute = createAsyncThunk(
 
 export const updateRoute = createAsyncThunk(
   "routes/updateRoute",
-  async (
-    {
-      route,
-      image,
-    }: {
-      route: Omit<Route, "mainImage" | "organization">;
-      image?: ImagePickerResult;
-    },
-    thunkAPI
-  ) => {
+  async (route: RouteUpdate, thunkAPI) => {
     try {
       // Convert image to base64 if provided
       let imageBase64: string | undefined;
-      if (image) {
-        const response = await fetch(image.uri);
+      if (route.image) {
+        const response = await fetch(route.image.uri);
         const blob = await response.blob();
         imageBase64 = await new Promise((resolve) => {
           const reader = new FileReader();
@@ -128,9 +90,7 @@ export const updateRoute = createAsyncThunk(
         });
       }
 
-      const payload: Omit<Route, "mainImage" | "organization"> & {
-        imageBase64?: string;
-      } = {
+      const payload: Omit<RouteUpdate, "id"> = {
         ...route,
         ...(imageBase64 && { imageBase64 }),
       };
@@ -158,6 +118,7 @@ export const routeSlice = createSlice({
         state.routesList = undefined;
         state.error = null;
         state.successRouteUpdate = false;
+        state.successRouteCreate = false;
       })
       .addCase(getRoutes.fulfilled, (state, action) => {
         state.loadingRoutesList = false;

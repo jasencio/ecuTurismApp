@@ -81,7 +81,7 @@ const OrganizationCreate = () => {
 
   React.useEffect(() => {
     if (successOrganizationCreate) {
-      router.push('/home/admin/organization/organizationList');
+      router.back();
     }
   }, [successOrganizationCreate]);
 

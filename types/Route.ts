@@ -1,5 +1,5 @@
 import { Organization } from '@/types/Organization';
-import { File } from "./File";
+import { File, ImagePickerResult } from "./File";
 
 export enum Hardness {
   LOW = "LOW",
@@ -20,5 +20,15 @@ export interface Route {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type RouteCreate = Omit<Route, 'id' | 'organization' | 'mainImage' | 'createdAt' | 'updatedAt'> & {
+  imageBase64: string | null;
+  image: ImagePickerResult | null;
+};
+
+export type RouteUpdate = Omit<Route, 'organization' | 'mainImage' | 'createdAt' | 'updatedAt'> & {
+  imageBase64: string | null;
+  image: ImagePickerResult | null;
+};
 
 export interface RouteListResponse extends Array<Route> {} 
