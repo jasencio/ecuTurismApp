@@ -7,12 +7,13 @@ import UsersReducer from '@/slices/usersSlice';
 import OrganizationsReducer from '@/slices/organizationSlice';
 import ExplorerReducer from '@/slices/explorerSlice';
 import AdminCompanyReducer from '@/slices/adminCompanySlice';
+import AdminCompanyRouteReducer from '@/slices/adminCompanyRouteSlice';
 import { thunk } from 'redux-thunk';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany'],
+  whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany', 'adminCompanyRoute'],
 };
 
 const persistedSessionReducer = persistReducer(persistConfig, SessionReducer);
@@ -21,6 +22,7 @@ const persistedUsersReducer = persistReducer(persistConfig, UsersReducer);
 const persistedOrganizationsReducer = persistReducer(persistConfig, OrganizationsReducer);
 const persistedExplorerReducer = persistReducer(persistConfig, ExplorerReducer);
 const persistedAdminCompanyReducer = persistReducer(persistConfig, AdminCompanyReducer);
+const persistedAdminCompanyRouteReducer = persistReducer(persistConfig, AdminCompanyRouteReducer);
 
 export const rootReducer = combineReducers({
     session: persistedSessionReducer,
@@ -29,6 +31,7 @@ export const rootReducer = combineReducers({
     organizations: persistedOrganizationsReducer,
     explorer: persistedExplorerReducer,
     adminCompany: persistedAdminCompanyReducer,
+    adminCompanyRoute: persistedAdminCompanyRouteReducer,
 })
 
 // Create store

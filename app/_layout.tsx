@@ -51,10 +51,11 @@ function AppContent() {
       <Stack.Screen name="home/guides/assignmentList" options={{ title: "Asignaciones" }} />
 
       {/*Administrador de Organización */}
+      <Stack.Screen name="home/admin_organization/organizationProfile" options={{ title: "Mi Organización" }} />
+      <Stack.Screen name="home/admin_organization/organizationProfileUpdate" options={{ title: "Actualizar Organización" }} />
       <Stack.Screen name="home/admin_organization/routeList" options={{ title: "Gestión de Rutas" }} />
       <Stack.Screen name="home/admin_organization/guideList" options={{ title: "Guías" }} />
       <Stack.Screen name="home/admin_organization/appoinmentList" options={{ title: "Agendamientos" }} />
-      <Stack.Screen name="home/admin_organization/organizationProfile" options={{ title: "Mi Organización" }} />
       <Stack.Screen name="home/admin_organization/routeCreate" options={{ title: "Crear Ruta" }} />
       <Stack.Screen name="home/admin_organization/routeEdit" options={{ title: "Editar Ruta" }} />
 

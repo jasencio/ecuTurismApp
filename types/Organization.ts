@@ -3,15 +3,20 @@ export interface Organization {
   id: string;
   name: string;
   description: string;
-  adminId?: string;
-  adminName?: string;
-  adminEmail?: string;
   phone: string;
   address: string;
+  timeOpenWeek: string | null;
+  timeCloseWeek: string | null;
+  timeOpenSaturday: string | null;
+  timeCloseSaturday: string | null;
+  timeOpenSunday: string | null;
+  timeCloseSunday: string | null;
+  daysWeek: string[] | null;
+  daysWeekDisabled: string[] | null;
   isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  image?: File;
+  createdAt: string;
+  updatedAt: string;
+  image: File;
 }
 
 export interface OrganizationListResponse extends Array<Organization> {}

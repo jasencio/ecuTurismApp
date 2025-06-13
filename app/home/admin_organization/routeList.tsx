@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
   ScrollView,
@@ -9,38 +9,45 @@ import {
 import { Text, Card, Button, FAB, IconButton, Surface } from "react-native-paper";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
+import { AppDispatch, RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import { getRoutes } from "@/slices/adminCompanyRouteSlice";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { selectLoadingRoutesList, selectRoutesList } from "@/selectors/adminCompanyRouteSelector";
+import LoadingScreen from "@/components/LoadingScreen";
+import { Hardness, Route } from "@/types/Route";
 
 interface RouteCardProps {
   id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  duration: string;
-  difficulty: string;
-  status: 'active' | 'inactive';
+  route: Route;
   onEdit: (id: string) => void;
   onToggleStatus: (id: string) => void;
 }
 
 const RouteCard = ({ 
   id, 
-  title, 
-  description, 
-  imageUrl, 
-  duration, 
-  difficulty, 
-  status,
+  route,
   onEdit, 
   onToggleStatus 
 }: RouteCardProps) => {
   const router = useRouter();
+  const { name,description,minutes,hardness, mainImage,isActive } = route || {};
 
-  const getDifficultyColor = (level: string) => {
-    switch(level.toLowerCase()) {
-      case 'fácil': return '#4CAF50';
-      case 'moderado': return '#FFC107';
-      case 'difícil': return '#F44336';
-      default: return '#757575';
+  const getDifficultyColor = (level?: string) => {
+    switch (level) {
+      case Hardness.LOW: return '#4CAF50';
+      case Hardness.MEDIUM: return '#FFC107';
+      case Hardness.HIGH: return '#F44336';
+      default: return '#666666';
+    }
+  };
+
+  const getDifficultyTranslation = (level?: string) => {
+    switch (level) {
+      case Hardness.LOW: return 'Fácil';
+      case Hardness.MEDIUM: return 'Medio';
+      case Hardness.HIGH: return 'Alto';
+      default: return 'No especificado';
     }
   };
 
@@ -48,13 +55,13 @@ const RouteCard = ({
     <Surface style={styles.card} elevation={2}>
       <View style={styles.cardHeader}>
         <View style={styles.titleContainer}>
-          <Text variant="titleMedium" style={styles.cardTitle}>{title}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: status === 'active' ? '#4CAF50' : '#9E9E9E' }]}>
-            <Text style={styles.statusText}>{status === 'active' ? 'Activo' : 'Inactivo'}</Text>
+          <Text variant="titleMedium" style={styles.cardTitle}>{name}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: isActive ? '#4CAF50' : '#9E9E9E' }]}>
+            <Text style={styles.statusText}>{isActive ? 'Activo' : 'Inactivo'}</Text>
           </View>
         </View>
         <IconButton
-          icon={status === 'active' ? 'eye-off' : 'eye'}
+          icon={isActive? 'eye-off' : 'eye'}
           size={20}
           onPress={() => onToggleStatus(id)}
         />
@@ -62,9 +69,9 @@ const RouteCard = ({
 
       <View style={styles.cardContent}>
         <View style={styles.imageContainer}>
-          <Card.Cover source={{ uri: imageUrl }} style={styles.cardImage} />
-          <View style={[styles.difficultyChip, { backgroundColor: getDifficultyColor(difficulty) }]}>
-            <Text style={styles.chipText}>{difficulty}</Text>
+          <Card.Cover source={{ uri: mainImage?.publicUrl }} style={styles.cardImage} />
+          <View style={[styles.difficultyChip, { backgroundColor: getDifficultyColor(hardness || undefined) }]}>
+            <Text style={styles.chipText}>{getDifficultyTranslation(hardness || undefined)}</Text>
           </View>
         </View>
 
@@ -76,7 +83,7 @@ const RouteCard = ({
           <View style={styles.detailRow}>
             <View style={styles.detailItem}>
               <MaterialCommunityIcons name="clock-outline" size={20} color="#666" />
-              <Text variant="bodySmall" style={styles.detailText}>{duration}</Text>
+              <Text variant="bodySmall" style={styles.detailText}>{minutes}</Text>
             </View>
           </View>
         </View>
@@ -106,35 +113,29 @@ const RouteCard = ({
 const AdminOrganizationRouteList = () => {
   const router = useRouter();
 
-  const sampleRoutes = [
-    {
-      id: "1",
-      title: "Ruta del Río Verde",
-      description: "Hermosa ruta de senderismo a través de un frondoso bosque y vistas al río.",
-      imageUrl: "https://picsum.photos/700",
-      duration: "2 horas",
-      difficulty: "Moderado",
-      status: 'active' as const
-    },
-    {
-      id: "2",
-      title: "Sendero de la Alhambra",
-      description: "Paseo histórico por los jardines y bosques que rodean la Alhambra.",
-      imageUrl: "https://picsum.photos/701",
-      duration: "1.5 horas",
-      difficulty: "Fácil",
-      status: 'active' as const
-    },
-    {
-      id: "3",
-      title: "Cumbre del Veleta",
-      description: "Desafiante ruta de alta montaña con vistas espectaculares de la Sierra Nevada.",
-      imageUrl: "https://picsum.photos/702",
-      duration: "4 horas",
-      difficulty: "Difícil",
-      status: 'inactive' as const
+  const isLoadingRoutesList = useSelector(selectLoadingRoutesList);
+  const routesList = useSelector(selectRoutesList);
+  const sessionData = useSelector(sessionDataSelector);
+  const dispatch = useDispatch<AppDispatch>();
+
+
+  const getRoutesData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getRoutes());
     }
-  ];
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      getRoutesData();
+    }, [getRoutesData])
+  );
+
+  if (isLoadingRoutesList) {
+    return <LoadingScreen />;
+  }
+
 
   const handleEdit = (id: string) => {
     router.push(`/home/admin_organization/routeEdit?id=${id}`);
@@ -159,10 +160,11 @@ const AdminOrganizationRouteList = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {sampleRoutes.map((route) => (
+          {routesList?.map((route: Route) => (
             <RouteCard
               key={route.id}
-              {...route}
+              id={route.id}
+              route={route}
               onEdit={handleEdit}
               onToggleStatus={handleToggleStatus}
             />
@@ -300,3 +302,7 @@ const styles = StyleSheet.create({
 });
 
 export default AdminOrganizationRouteList;
+function dispatch(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+
