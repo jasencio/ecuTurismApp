@@ -2,44 +2,50 @@ import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import React from 'react';
 import { View, StyleSheet, ScrollView, Linking } from 'react-native';
 import { Text, useTheme, Card, Button, IconButton } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { AppDispatch } from '@/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { currentGuideSelector, guidesListSelector, loadingCurrentGuideSelector, loadingGuidesSelector } from '@/selectors/adminCompanyGuideSelectors';
+import { getGuide } from '@/slices/adminCompanyGuideSlice';
+import { sessionDataSelector } from '@/selectors/sessionSelector';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Mock data - In a real app, this would come from your backend
-const mockGuides = [
-  { 
-    id: '1', 
-    name: 'John Doe', 
-    email: 'john.doe@example.com', 
-    phone: '+34 612 345 678',
-    role: 'Guia',
-    specialties: ['Senderismo', 'Montañismo'],
-    experience: '5 años',
-    languages: ['Español', 'Inglés'],
-    status: 'Disponible'
-  },
-  { 
-    id: '2', 
-    name: 'Jane Smith', 
-    email: 'jane.smith@example.com', 
-    phone: '+34 623 456 789',
-    role: 'Guia',
-    specialties: ['Escalada', 'Espeleología'],
-    experience: '3 años',
-    languages: ['Español', 'Francés'],
-    status: 'En ruta'
-  },
-  { 
-    id: '3', 
-    name: 'Bob Johnson', 
-    email: 'bob.johnson@example.com', 
-    phone: '+34 634 567 890',
-    role: 'Guia',
-    specialties: ['Ciclismo', 'Kayak'],
-    experience: '7 años',
-    languages: ['Español', 'Inglés', 'Alemán'],
-    status: 'Disponible'
-  },
-];
+// const mockGuides = [
+//   { 
+//     id: '1', 
+//     name: 'John Doe', 
+//     email: 'john.doe@example.com', 
+//     phone: '+34 612 345 678',
+//     role: 'Guia',
+//     specialties: ['Senderismo', 'Montañismo'],
+//     experience: '5 años',
+//     languages: ['Español', 'Inglés'],
+//     status: 'Disponible'
+//   },
+//   { 
+//     id: '2', 
+//     name: 'Jane Smith', 
+//     email: 'jane.smith@example.com', 
+//     phone: '+34 623 456 789',
+//     role: 'Guia',
+//     specialties: ['Escalada', 'Espeleología'],
+//     experience: '3 años',
+//     languages: ['Español', 'Francés'],
+//     status: 'En ruta'
+//   },
+//   { 
+//     id: '3', 
+//     name: 'Bob Johnson', 
+//     email: 'bob.johnson@example.com', 
+//     phone: '+34 634 567 890',
+//     role: 'Guia',
+//     specialties: ['Ciclismo', 'Kayak'],
+//     experience: '7 años',
+//     languages: ['Español', 'Inglés', 'Alemán'],
+//     status: 'Disponible'
+//   },
+// ];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -55,14 +61,30 @@ const getStatusColor = (status: string) => {
 };
 
 const GuideDetail = () => {
-  const theme = useTheme();
   const router = useRouter();
   const { guideId } = useLocalSearchParams();
+  const dispatch = useDispatch<AppDispatch>();
+  const currentGuide = useSelector(currentGuideSelector);
+  const isLoadingCurrentGuide = useSelector(loadingCurrentGuideSelector);
+  const sessionData = useSelector(sessionDataSelector);
 
-  // Find guide from mock data
-  const guide = mockGuides.find(g => g.id === guideId);
+  const getGuideData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getGuide(guideId as string));
+    }
+  }, [sessionData, dispatch]);
 
-  if (!guide) {
+  useFocusEffect(
+    React.useCallback(() => {
+      getGuideData();
+    }, [getGuideData])
+  );
+
+  if (isLoadingCurrentGuide) {
+    return <LoadingScreen />;
+  }
+
+  if (!currentGuide) {
     return (
       <CustomSafeAreaView>
         <Text>Guía no encontrado</Text>
@@ -71,11 +93,11 @@ const GuideDetail = () => {
   }
 
   const handleCall = () => {
-    Linking.openURL(`tel:${guide.phone.replace(/\s/g, '')}`);
+    Linking.openURL(`tel:${currentGuide.phone.replace(/\s/g, '')}`);
   };
 
   const handleEmail = () => {
-    Linking.openURL(`mailto:${guide.email}`);
+    Linking.openURL(`mailto:${currentGuide.email}`);
   };
 
   return (
@@ -85,9 +107,9 @@ const GuideDetail = () => {
           <Card.Content>
             <View style={styles.header}>
               <View style={styles.nameContainer}>
-                <Text variant="headlineMedium" style={styles.name}>{guide.name}</Text>
-                <View style={[styles.statusContainer, { backgroundColor: getStatusColor(guide.status) }]}>
-                  <Text style={styles.statusText}>{guide.status}</Text>
+                <Text variant="headlineMedium" style={styles.name}>{currentGuide.name}</Text>
+                <View style={[styles.statusContainer, { backgroundColor: getStatusColor(currentGuide?.status || "No disponible") }]}>
+                  <Text style={styles.statusText}>{currentGuide?.status || "No encontrado"}</Text>
                 </View>
               </View>
             </View>
@@ -97,7 +119,7 @@ const GuideDetail = () => {
                 <IconButton icon="phone" size={24} onPress={handleCall} />
                 <View style={styles.contactTextContainer}>
                   <Text variant="titleSmall">Teléfono</Text>
-                  <Text style={styles.contactText}>{guide.phone}</Text>
+                  <Text style={styles.contactText}>{currentGuide.phone}</Text>
                 </View>
               </View>
 
@@ -105,17 +127,17 @@ const GuideDetail = () => {
                 <IconButton icon="email" size={24} onPress={handleEmail} />
                 <View style={styles.contactTextContainer}>
                   <Text variant="titleSmall">Email</Text>
-                  <Text style={styles.contactText}>{guide.email}</Text>
+                  <Text style={styles.contactText}>{currentGuide.email}</Text>
                 </View>
               </View>
             </View>
 
-            <View style={styles.infoSection}>
+            {/* <View style={styles.infoSection}>
               <Text variant="titleMedium" style={styles.sectionTitle}>Información Profesional</Text>
               
               <View style={styles.infoItem}>
                 <Text variant="titleSmall">Experiencia</Text>
-                <Text style={styles.infoText}>{guide.experience}</Text>
+                <Text style={styles.infoText}>{currentGuide?.experience}</Text>
               </View>
 
               <View style={styles.infoItem}>
@@ -139,7 +161,7 @@ const GuideDetail = () => {
                   ))}
                 </View>
               </View>
-            </View>
+            </View> */}
           </Card.Content>
         </Card>
       </ScrollView>

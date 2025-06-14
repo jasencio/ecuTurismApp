@@ -1,52 +1,14 @@
 import CustomSafeAreaView from '@/components/CustomSafeAreaView';
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { List, Text, useTheme, Surface } from 'react-native-paper';
-import { useRouter } from 'expo-router';
-
-// Mock data for demonstration - replace with your actual data
-const guides = [
-  { 
-    id: '1', 
-    name: 'John Doe', 
-    email: 'john.doe@example.com', 
-    phone: '+34 612 345 678',
-    role: 'Guia',
-    status: 'Disponible'
-  },
-  { 
-    id: '2', 
-    name: 'Jane Smith', 
-    email: 'jane.smith@example.com', 
-    phone: '+34 623 456 789',
-    role: 'Guia',
-    status: 'En ruta'
-  },
-  { 
-    id: '3', 
-    name: 'Bob Johnson', 
-    email: 'bob.johnson@example.com', 
-    phone: '+34 634 567 890',
-    role: 'Guia',
-    status: 'Disponible'
-  },
-  { 
-    id: '4', 
-    name: 'Alice Brown', 
-    email: 'alice.brown@example.com', 
-    phone: '+34 645 678 901',
-    role: 'Guia',
-    status: 'No disponible'
-  },
-  { 
-    id: '5', 
-    name: 'Charlie Wilson', 
-    email: 'charlie.wilson@example.com', 
-    phone: '+34 656 789 012',
-    role: 'Guia',
-    status: 'Disponible'
-  },
-];
+import { List, Text, Surface } from 'react-native-paper';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { guidesListSelector, loadingGuidesSelector } from '@/selectors/adminCompanyGuideSelectors';
+import { sessionDataSelector } from '@/selectors/sessionSelector';
+import LoadingScreen from '@/components/LoadingScreen';
+import { getGuides } from '@/slices/adminCompanyGuideSlice';
+import { AppDispatch } from '@/store';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -62,12 +24,32 @@ const getStatusColor = (status: string) => {
 };
 
 const GuideList = () => {
-  const theme = useTheme();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const guides = useSelector(guidesListSelector);
+  const isLoadingGuides = useSelector(loadingGuidesSelector);
+  const sessionData = useSelector(sessionDataSelector);
 
   const handleGuidePress = (guideId: string) => {
     router.push(`/home/admin_organization/guideDetail?guideId=${guideId}`);
   };
+
+  const getGuidesData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getGuides());
+    }
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      getGuidesData();
+    }, [getGuidesData])
+  );
+
+  if (isLoadingGuides) {
+    return <LoadingScreen />;
+  }
 
   return (
     <CustomSafeAreaView>
@@ -87,7 +69,7 @@ const GuideList = () => {
                 title={
                   <View style={styles.titleContainer}>
                     <Text style={styles.nameText}>{guide.name}</Text>
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(guide.status) }]} />
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor((guide as any).status || 'No disponible') }]} />
                   </View>
                 }
                 description={
