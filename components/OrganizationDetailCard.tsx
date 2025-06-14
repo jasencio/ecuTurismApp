@@ -1,19 +1,45 @@
 import { Organization } from '@/types/Organization';
 import React from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
-import { Text, Surface, useTheme, IconButton } from 'react-native-paper';
+import { Text, Surface, useTheme, IconButton, Chip } from 'react-native-paper';
 
 export interface OrganizationDetailCardProps {
   organization?: Organization;
   onEdit?: () => void;
 }
 
+const DAYS_OF_WEEK = [
+  { label: 'Lunes', value: 'Monday' },
+  { label: 'Martes', value: 'Tuesday' },
+  { label: 'Miércoles', value: 'Wednesday' },
+  { label: 'Jueves', value: 'Thursday' },
+  { label: 'Viernes', value: 'Friday' },
+  { label: 'Sábado', value: 'Saturday' },
+  { label: 'Domingo', value: 'Sunday' },
+];
+
 const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
   organization,
   onEdit,
 }) => {
   const theme = useTheme();
-  const { name, description, phone, address, isActive, createdAt, updatedAt, image } = organization ?? {};
+  const { 
+    name, 
+    description, 
+    phone, 
+    address, 
+    isActive, 
+    createdAt, 
+    updatedAt, 
+    image,
+    timeOpenWeek,
+    timeCloseWeek,
+    timeOpenSaturday,
+    timeCloseSaturday,
+    timeOpenSunday,
+    timeCloseSunday,
+    daysWeekEnabled
+  } = organization ?? {};
 
   return (
     <View style={styles.container}>
@@ -79,6 +105,98 @@ const OrganizationDetailCard: React.FC<OrganizationDetailCardProps> = ({
             <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}> 
               {phone}
             </Text>
+          </View>
+        </Surface>
+
+        <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> 
+            Horario de Atención
+          </Text>
+
+          <View style={styles.daysContainer}>
+            {DAYS_OF_WEEK.map((day) => (
+              <Chip
+                key={day.value}
+                selected={daysWeekEnabled?.includes(day.value)}
+                style={daysWeekEnabled?.includes(day.value) ? styles.dayChipSelected : styles.dayChipNotSelected}
+                showSelectedCheck={false}
+                textStyle={{ color: theme.colors.onPrimary }}
+              >
+                {day.label}
+              </Chip>
+            ))}
+          </View>
+
+          <View style={styles.timeSection}>
+            <Text variant="titleSmall" style={[styles.timeSectionTitle, { color: theme.colors.onSurface }]}>
+              Días de Semana (Lunes - Viernes)
+            </Text>
+            <View style={styles.timeRow}>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Apertura:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeOpenWeek}
+                </Text>
+              </View>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Cierre:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeCloseWeek}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.timeSection}>
+            <Text variant="titleSmall" style={[styles.timeSectionTitle, { color: theme.colors.onSurface }]}>
+              Sábado
+            </Text>
+            <View style={styles.timeRow}>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Apertura:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeOpenSaturday}
+                </Text>
+              </View>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Cierre:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeCloseSaturday}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.timeSection}>
+            <Text variant="titleSmall" style={[styles.timeSectionTitle, { color: theme.colors.onSurface }]}>
+              Domingo
+            </Text>
+            <View style={styles.timeRow}>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Apertura:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeOpenSunday}
+                </Text>
+              </View>
+              <View style={styles.timeInfo}>
+                <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>
+                  Cierre:
+                </Text>
+                <Text variant="bodyMedium" style={[styles.value, { color: theme.colors.onSurface }]}>
+                  {timeCloseSunday}
+                </Text>
+              </View>
+            </View>
           </View>
         </Surface>
 
@@ -173,6 +291,34 @@ const styles = StyleSheet.create({
   },
   value: {
     fontWeight: '500',
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  dayChipSelected: {
+    marginBottom: 8,
+    backgroundColor: 'green',
+  },
+  dayChipNotSelected: {
+    marginBottom: 8,
+    backgroundColor: 'red',
+  },
+  timeSection: {
+    marginBottom: 16,
+  },
+  timeSectionTitle: {
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  timeRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  timeInfo: {
+    flex: 1,
   },
 });
 

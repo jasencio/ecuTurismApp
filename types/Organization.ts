@@ -11,8 +11,7 @@ export interface Organization {
   timeCloseSaturday: string | null;
   timeOpenSunday: string | null;
   timeCloseSunday: string | null;
-  daysWeek: string[] | null;
-  daysWeekDisabled: string[] | null;
+  daysWeekEnabled: string[] | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

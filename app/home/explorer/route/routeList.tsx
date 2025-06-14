@@ -1,6 +1,11 @@
 // screens/DetailScreen.tsx
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
-import { useNavigation, useRouter } from "expo-router";
+import LoadingScreen from "@/components/LoadingScreen";
+import { loadingOrganizationSelector, organizationSelector } from "@/selectors/explorerSelector";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { getOrganization } from "@/slices/explorerSlice";
+import { AppDispatch } from "@/store";
+import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
   View,
@@ -11,6 +16,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, Card, Button, List, Title, Avatar } from "react-native-paper";
+import { useDispatch, useSelector } from "react-redux";
 const { height } = Dimensions.get("window");
 interface CustomCardProps {
   title: string;
@@ -46,13 +52,15 @@ const CustomCardRoute: React.FC<CustomCardProps> = ({ title, subtitle }) => {
 
 const DetailScreen = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch<AppDispatch>();
+  const { id } = useLocalSearchParams();
+  const organization = useSelector(organizationSelector);
+  const isLoadingOrganization = useSelector(loadingOrganizationSelector);
+  const sessionData = useSelector(sessionDataSelector);
 
   useEffect(() => {
-    navigation.setOptions({ title: "Bike Park" });
-  }, [navigation]);
-
-  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
-  const address = "Av. XYZ y Av. Abc";
+    navigation.setOptions({ title: organization?.name || "-" });
+  }, [navigation, organization]);
 
   const data = {
     timeOpenWeek: "08:00",
@@ -83,10 +91,28 @@ const DetailScreen = () => {
     },
   ];
 
+
+  const getOrganizationData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getOrganization(id as string));
+    }
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      getOrganizationData();
+    }, [getOrganizationData])
+  );
+
+  if (isLoadingOrganization) {
+    return <LoadingScreen />;
+  }
+
   return (
     <CustomSafeAreaView>
       <Image
-        source={{ uri: imageUrl }}
+        source={{ uri: organization?.image?.publicUrl}}
         style={styles.image}
         resizeMode="cover"
       />
@@ -100,7 +126,7 @@ const DetailScreen = () => {
               Dirección
             </Text>
             <Text variant="bodyMedium" style={styles.text}>
-              {address}
+              {organization?.address}
             </Text>
           </Card.Content>
         </Card>

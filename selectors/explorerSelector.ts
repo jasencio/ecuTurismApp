@@ -17,3 +17,18 @@ export const errorSelector = createSelector(
   explorerState,
   (state) => state.error
 );
+
+export const organizationSelector = createSelector(
+  explorerState,
+  (state) => state.organization
+);
+
+export const loadingOrganizationSelector = createSelector(
+  explorerState,
+  (state) => state.loadingOrganization
+);
+
+export const errorOrganizationSelector = createSelector(
+  explorerState,
+  (state) => state.error
+);

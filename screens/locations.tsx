@@ -24,7 +24,15 @@ const CustomCard = ({ organization }: LocationCardProps) => {
   const router = useRouter();
   const { description, address, name, image } = organization;
   const publicUrl = image?.publicUrl;
-  
+
+  const handleViewDetail = () => {
+    router.push({
+      pathname: "/home/explorer/route/routeList",
+      params: { id: organization.id }
+    })
+  }
+
+
   return (
     <TouchableWithoutFeedback onPress={() => router.push("/home/explorer/route/routeList")}>
       <Card style={styles.card} mode="elevated">
@@ -48,7 +56,7 @@ const CustomCard = ({ organization }: LocationCardProps) => {
         <Card.Actions style={styles.cardActions}>
           <Button 
             mode="contained" 
-            onPress={() => router.push("/home/explorer/route/routeList")}
+            onPress={() => handleViewDetail()}
             style={styles.viewButton}
           >
             Ver detalles

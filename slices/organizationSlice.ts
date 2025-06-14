@@ -66,7 +66,7 @@ export const createOrganization = createAsyncThunk(
     {
       organization,
       image,
-    }: { organization: Omit<Organization, "id">; image?: ImagePickerResult },
+    }: { organization: Omit<Organization, "id"|"createdAt"|"updatedAt">; image?: ImagePickerResult },
     thunkAPI
   ) => {
     try {
