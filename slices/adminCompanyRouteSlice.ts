@@ -78,23 +78,9 @@ export const updateRoute = createAsyncThunk(
   "routes/updateRoute",
   async (route: RouteUpdate, thunkAPI) => {
     try {
-      // Convert image to base64 if provided
-      let imageBase64: string | undefined;
-      if (route.image) {
-        const response = await fetch(route.image.uri);
-        const blob = await response.blob();
-        imageBase64 = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-      }
-
       const payload: Omit<RouteUpdate, "id"> = {
         ...route,
-        ...(imageBase64 && { imageBase64 }),
       };
-
       const response = await axiosInstance.put<Route>(
         `admin-company/route/${route.id}`,
         payload
@@ -119,6 +105,7 @@ export const routeSlice = createSlice({
         state.error = null;
         state.successRouteUpdate = false;
         state.successRouteCreate = false;
+        state.route = undefined;
       })
       .addCase(getRoutes.fulfilled, (state, action) => {
         state.loadingRoutesList = false;
