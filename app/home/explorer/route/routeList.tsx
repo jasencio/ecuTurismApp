@@ -16,7 +16,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { Text, Card, Avatar, Chip, ActivityIndicator } from "react-native-paper";
+import { Text, Card, Avatar, Chip } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 const { height } = Dimensions.get("window");
 interface CustomCardProps {

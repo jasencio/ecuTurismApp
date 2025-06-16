@@ -1,31 +1,55 @@
 // screens/DetailScreen.tsx
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import LoadingScreen from "@/components/LoadingScreen";
+import { loadingRouteSelector, routeSelector } from "@/selectors/explorerSelector";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { getRoute } from "@/slices/explorerSlice";
+import { AppDispatch } from "@/store";
+import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
+import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { View, Image, StyleSheet, Dimensions } from "react-native";
-import { Text, Card, Button } from "react-native-paper";
+import { Text, Card, Button, useTheme } from "react-native-paper";
+import { useDispatch, useSelector } from "react-redux";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { height } = Dimensions.get("window");
 
 const RouteDetail: React.FC = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { title } = useLocalSearchParams();
-
-  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
-  const description =
-    "Hermosa ruta de senderismo a través de un frondoso bosque y vistas al río.";
-  const minutes = 120;
-  const hardness = "Moderado";
+  const { id } = useLocalSearchParams();
+  const dispatch = useDispatch<AppDispatch>();
+  const sessionData = useSelector(sessionDataSelector);
+  const route = useSelector(routeSelector);
+  const loadingRoute = useSelector(loadingRouteSelector);
+  const theme = useTheme();
 
   useEffect(() => {
-    navigation.setOptions({ title });
-  }, [navigation]);
+      navigation.setOptions({ title: route?.name || "-"});
+  }, [navigation, route]);
+
+  const getRouteData = React.useCallback(() => {
+    if (sessionData) {
+      dispatch(getRoute(id as string));
+    }
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      getRouteData();
+    }, [getRouteData])
+  );
+
+  if (loadingRoute) {
+    return <LoadingScreen />;
+  }
 
   return (
     <CustomSafeAreaView>
       <Image
-        source={{ uri: imageUrl }}
+        source={{ uri: route?.mainImage?.publicUrl }}
         style={styles.image}
         resizeMode="cover"
       />
@@ -36,22 +60,32 @@ const RouteDetail: React.FC = () => {
               Descripción
             </Text>
             <Text variant="bodyMedium" style={styles.text}>
-              {description}
+              {route?.description}
             </Text>
 
-            <Text variant="titleLarge" style={styles.title}>
-              Duración
-            </Text>
-            <Text variant="bodyMedium" style={styles.text}>
-              {minutes} minutes
-            </Text>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={20}
+                color={theme.colors.primary}
+                style={styles.infoIcon}
+              />
+              <Text variant="bodyMedium" style={styles.infoText}>
+                Duración: <Text style={styles.value}>{route?.minutes} minutos de aventura</Text>
+              </Text>
+            </View>
 
-            <Text variant="titleLarge" style={styles.title}>
-              Dificultad
-            </Text>
-            <Text variant="bodyMedium" style={styles.text}>
-              {hardness}
-            </Text>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons
+                name="run"
+                size={20}
+                color={getDifficultyColor(route?.hardness)}
+                style={styles.infoIcon}
+              />
+              <Text variant="bodyMedium" style={styles.infoText}>
+                Dificultad: <Text style={styles.value}>{getDifficultyTranslation(route?.hardness)}</Text>
+              </Text>
+            </View>
 
             <Button
               mode="contained"
@@ -93,5 +127,21 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 6,
+    marginTop: 16,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
+  infoText: {
+    color: "#333",
+  },
+  value: {
+    color: "#222",
+    fontWeight: "bold",
   },
 });

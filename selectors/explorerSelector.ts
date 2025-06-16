@@ -47,3 +47,18 @@ export const errorOrganizationRoutesSelector = createSelector(
   explorerState,
   (state) => state.errorOrganizationRoutes
 );
+
+export const routeSelector = createSelector(
+  explorerState,
+  (state) => state.route
+);
+
+export const loadingRouteSelector = createSelector(
+  explorerState,
+  (state) => state.loadingRoute
+);
+
+export const errorRouteSelector = createSelector(
+  explorerState,
+  (state) => state.errorRoute
+);

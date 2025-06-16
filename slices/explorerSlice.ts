@@ -1,5 +1,5 @@
 import { Organization, OrganizationListResponse } from "@/types/Organization";
-import { RouteListResponse } from "@/types/Route";
+import { Route, RouteListResponse } from "@/types/Route";
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
@@ -13,6 +13,9 @@ interface ExplorerState {
   organizationRoutes?: RouteListResponse;
   loadingOrganizationRoutes: boolean;
   errorOrganizationRoutes: string | null;
+  route?: Route;
+  loadingRoute: boolean;
+  errorRoute: string | null;
 }
 
 const initialState: ExplorerState = {
@@ -25,6 +28,9 @@ const initialState: ExplorerState = {
   organizationRoutes: undefined,
   loadingOrganizationRoutes: false,
   errorOrganizationRoutes: null,
+  route: undefined,
+  loadingRoute: false,
+  errorRoute: null,
 };
 
 export const getOrganizations = createAsyncThunk(
@@ -64,7 +70,21 @@ export const getOrganizationRoutes = createAsyncThunk(
       );
       return response?.data;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue("Error al obtener las rutas de la organización");
+      return thunkAPI.rejectWithValue(
+        "Error al obtener las rutas de la organización"
+      );
+    }
+  }
+);
+
+export const getRoute = createAsyncThunk(
+  "explorer/getRoute",
+  async (id: string, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get<Route>(`/explorer/routes/${id}`);
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al obtener la ruta");
     }
   }
 );
@@ -87,7 +107,8 @@ export const explorerSlice = createSlice({
       })
       .addCase(getOrganizations.rejected, (state, action) => {
         state.loadingOrganizationsList = false;
-        state.error = action?.error?.message || "Error al obtener las organizaciones";
+        state.error =
+          action?.error?.message || "Error al obtener las organizaciones";
       })
       // Fetch Organization
       .addCase(getOrganization.pending, (state) => {
@@ -96,12 +117,13 @@ export const explorerSlice = createSlice({
         state.errorOrganization = null;
       })
       .addCase(getOrganization.fulfilled, (state, action) => {
-        state.loadingOrganization = false ;
+        state.loadingOrganization = false;
         state.organization = action.payload;
       })
       .addCase(getOrganization.rejected, (state, action) => {
         state.loadingOrganization = false;
-        state.errorOrganization = action?.error?.message || "Error al obtener la organización";
+        state.errorOrganization =
+          action?.error?.message || "Error al obtener la organización";
       })
       // Fetch Organization Routes
       .addCase(getOrganizationRoutes.pending, (state) => {
@@ -115,7 +137,24 @@ export const explorerSlice = createSlice({
       })
       .addCase(getOrganizationRoutes.rejected, (state, action) => {
         state.loadingOrganizationRoutes = false;
-        state.errorOrganizationRoutes = action?.error?.message || "Error al obtener las rutas de la organización";
+        state.errorOrganizationRoutes =
+          action?.error?.message ||
+          "Error al obtener las rutas de la organización";
+      })
+      // Fetch Route
+      .addCase(getRoute.pending, (state) => {
+        state.loadingRoute = true;
+        state.route = undefined;
+        state.errorRoute = null;
+      })
+      .addCase(getRoute.fulfilled, (state, action) => {
+        state.loadingRoute = false;
+        state.route = action.payload;
+      })
+      .addCase(getRoute.rejected, (state, action) => {
+        state.loadingRoute = false;
+        state.errorRoute =
+          action?.error?.message || "Error al obtener la ruta";
       });
   },
 });
