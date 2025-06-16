@@ -1,4 +1,5 @@
 import { Organization, OrganizationListResponse } from "@/types/Organization";
+import { RouteListResponse } from "@/types/Route";
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
@@ -9,6 +10,9 @@ interface ExplorerState {
   organization?: Organization;
   loadingOrganization: boolean;
   errorOrganization: string | null;
+  organizationRoutes?: RouteListResponse;
+  loadingOrganizationRoutes: boolean;
+  errorOrganizationRoutes: string | null;
 }
 
 const initialState: ExplorerState = {
@@ -18,6 +22,9 @@ const initialState: ExplorerState = {
   organization: undefined,
   loadingOrganization: false,
   errorOrganization: null,
+  organizationRoutes: undefined,
+  loadingOrganizationRoutes: false,
+  errorOrganizationRoutes: null,
 };
 
 export const getOrganizations = createAsyncThunk(
@@ -44,6 +51,20 @@ export const getOrganization = createAsyncThunk(
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al obtener la organización");
+    }
+  }
+);
+
+export const getOrganizationRoutes = createAsyncThunk(
+  "explorer/getOrganizationRoutes",
+  async (id: string, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get<RouteListResponse>(
+        `/explorer/organizations/${id}/routes`
+      );
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al obtener las rutas de la organización");
     }
   }
 );
@@ -81,6 +102,20 @@ export const explorerSlice = createSlice({
       .addCase(getOrganization.rejected, (state, action) => {
         state.loadingOrganization = false;
         state.errorOrganization = action?.error?.message || "Error al obtener la organización";
+      })
+      // Fetch Organization Routes
+      .addCase(getOrganizationRoutes.pending, (state) => {
+        state.loadingOrganizationRoutes = true;
+        state.organizationRoutes = undefined;
+        state.errorOrganizationRoutes = null;
+      })
+      .addCase(getOrganizationRoutes.fulfilled, (state, action) => {
+        state.loadingOrganizationRoutes = false;
+        state.organizationRoutes = action.payload;
+      })
+      .addCase(getOrganizationRoutes.rejected, (state, action) => {
+        state.loadingOrganizationRoutes = false;
+        state.errorOrganizationRoutes = action?.error?.message || "Error al obtener las rutas de la organización";
       });
   },
 });
