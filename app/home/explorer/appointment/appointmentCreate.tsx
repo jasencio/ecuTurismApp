@@ -5,36 +5,27 @@ import { useEffect, useState } from "react";
 import { View, Image, Dimensions, StyleSheet, ScrollView } from "react-native";
 import { Text, Card, Divider, Button } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
+import { useSelector } from "react-redux";
+import { routeSelector } from "@/selectors/explorerSelector";
+import { getDifficultyTranslation } from "@/types/Route";
 
 const { height } = Dimensions.get("window");
 
 export default function AppointmentCreate() {
   const navigation = useNavigation();
   const router = useRouter();
-  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
   const [time, setTime] = useState<string | undefined>();
   const [visitors, setVisitors] = useState<string | undefined>(undefined);
-
-  const data = {
-    location: "Bike Park",
-    route: "Sendero 1",
-    address: "Av. XYZ y Av. Abc",
-    description:
-      "Hermosa ruta de senderismo a través de un frondoso bosque y vistas al río.",
-    minutes: 120,
-    hardness: "Moderado",
-  };
-  
-  const { description, minutes, hardness, location, route, address } = data;
+  const route = useSelector(routeSelector);
 
   useEffect(() => {
-    navigation.setOptions({ headerBackTitle: "Atras" });
-  }, [navigation]);
+    navigation.setOptions({ headerBackTitle: "Atrás", title: route?.organization?.name || "-" });
+  }, [navigation, route]);
 
   return (
     <CustomSafeAreaView>
       <Image
-        source={{ uri: imageUrl }}
+        source={{ uri: route?.mainImage?.publicUrl }}
         style={styles.image}
         resizeMode="cover"
       />
@@ -45,22 +36,16 @@ export default function AppointmentCreate() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="titleSmall" style={styles.title}>
-              Ubicacion
-            </Text>
-            <Text variant="bodySmall" style={styles.text}>
-              {location}
-            </Text>
-            <Text variant="titleSmall" style={styles.title}>
               Ruta
             </Text>
             <Text variant="bodySmall" style={styles.text}>
-              {route}
+              {route?.name}
             </Text>
             <Text variant="titleSmall" style={styles.title}>
-              Direccion
+              Dirección
             </Text>
             <Text variant="bodySmall" style={styles.text}>
-              {address}
+              {route?.organization?.address}
             </Text>
           </Card.Content>
         </Card>
@@ -71,21 +56,21 @@ export default function AppointmentCreate() {
               Descripción
             </Text>
             <Text variant="bodySmall" style={styles.text}>
-              {description}
+              {route?.description}
             </Text>
 
             <Text variant="titleSmall" style={styles.title}>
               Duración
             </Text>
             <Text variant="bodySmall" style={styles.text}>
-              {minutes} minutos
+              {route?.minutes} minutos
             </Text>
 
             <Text variant="titleSmall" style={styles.title}>
               Dificultad
             </Text>
             <Text variant="bodySmall" style={styles.text}>
-              {hardness}
+              {getDifficultyTranslation(route?.hardness)}
             </Text>
           </Card.Content>
         </Card>
