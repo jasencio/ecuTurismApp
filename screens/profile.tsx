@@ -89,6 +89,10 @@ interface ProfileFieldProps {
   setShowSecureText?: (show: boolean) => void;
 }
 
+interface ProfileProps {
+  currentTab: number;
+}
+
 const ProfileField = React.memo(({ label, value }: ProfileFieldProps) => {
   return (
     <View style={styles.fieldContainer}>
@@ -100,7 +104,7 @@ const ProfileField = React.memo(({ label, value }: ProfileFieldProps) => {
   );
 });
 
-export default function Profile() {
+export default function Profile({ currentTab }: ProfileProps) {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
   const profileData = useSelector(profileDataSelector) as
@@ -120,11 +124,20 @@ export default function Profile() {
     }
   }, [sessionData, dispatch]);
 
-  // Fetch when screen comes into focus
+  // Fetch when tab changes to profile
+  React.useEffect(() => {
+    if (currentTab === 2) { // 2 is the index of the profile tab
+      fetchProfileData();
+    }
+  }, [currentTab, fetchProfileData]);
+
+  // Fetch when screen comes into focus and we're on profile tab
   useFocusEffect(
     React.useCallback(() => {
-      fetchProfileData();
-    }, [fetchProfileData])
+      if (currentTab === 2) {
+        fetchProfileData();
+      }
+    }, [currentTab, fetchProfileData])
   );
 
   const {
