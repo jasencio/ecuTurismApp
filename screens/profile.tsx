@@ -1,6 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { ScrollView, StyleSheet, View, Animated, Dimensions } from "react-native";
-import { TextInput, HelperText, Button, Text, IconButton, Portal, Modal } from "react-native-paper";
+import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  TextInput,
+  HelperText,
+  Button,
+  Text,
+  IconButton,
+  Portal,
+  Modal,
+} from "react-native-paper";
 import { useForm, Controller, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,65 +16,66 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { fetchProfile, fetchUpdateProfile } from "@/slices/profileSlice";
-import { 
+import {
   profileDataSelector,
   loadingProfileSelector,
   loadingUpdateSelector,
-  successUpdateSelector 
+  successUpdateSelector,
 } from "@/selectors/profileSelector";
 import { ProfileResponse, ProfileUpdateRequest } from "@/types/Profile";
 import LoadingOverlay from "@/components/LoadingOverlay";
-
-
+import LoadingScreen from "@/components/LoadingScreen";
+import { useFocusEffect } from "expo-router";
 
 // Validation Schema using Zod
-const schema = z.object({
-  name: z.string().min(1, "El nombre es requerido."),
-  email: z.string().email("El correo electrónico no es válido."),
-  phone: z.string().regex(/^[0-9]{9,15}$/, "El teléfono no es válido."),
-  password: z.string().optional(),
-  passwordConfirmation: z.string().optional(),
-}).superRefine((data, ctx) => {
-  const password = data.password ?? "";
-  const passwordConfirmation = data.passwordConfirmation ?? "";
+const schema = z
+  .object({
+    name: z.string().min(1, "El nombre es requerido."),
+    email: z.string().email("El correo electrónico no es válido."),
+    phone: z.string().regex(/^[0-9]{9,15}$/, "El teléfono no es válido."),
+    password: z.string().optional(),
+    passwordConfirmation: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const password = data.password ?? "";
+    const passwordConfirmation = data.passwordConfirmation ?? "";
 
-  // Only run validation if at least one is non-empty
-  if (password !== "" || passwordConfirmation !== "") {
-    if (password.length < 6) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La contraseña debe tener al menos 6 caracteres.",
-        path: ["password"],
-      });
+    // Only run validation if at least one is non-empty
+    if (password !== "" || passwordConfirmation !== "") {
+      if (password.length < 6) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La contraseña debe tener al menos 6 caracteres.",
+          path: ["password"],
+        });
+      }
+      if (passwordConfirmation === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La confirmación de contraseña es requerida.",
+          path: ["passwordConfirmation"],
+        });
+      }
+      if (password === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La contraseña es requerida.",
+          path: ["password"],
+        });
+      }
+      if (
+        password &&
+        passwordConfirmation &&
+        password !== passwordConfirmation
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Las contraseñas no coinciden.",
+          path: ["passwordConfirmation"],
+        });
+      }
     }
-    if (passwordConfirmation === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La confirmación de contraseña es requerida.",
-        path: ["passwordConfirmation"],
-      });
-    }
-    if (password === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La contraseña es requerida.",
-        path: ["password"],
-      });
-    }
-    if (password && passwordConfirmation && password !== passwordConfirmation) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Las contraseñas no coinciden.",
-        path: ["passwordConfirmation"],
-      });
-    }
-  }
-});
-
-interface ProfileProps {
-  loading?: boolean;
-  isRegistered?: boolean;
-}
+  });
 
 interface ProfileFieldProps {
   label: string;
@@ -80,17 +89,7 @@ interface ProfileFieldProps {
   setShowSecureText?: (show: boolean) => void;
 }
 
-const ProfileField = React.memo(({ 
-  label, 
-  value, 
-  isEditing, 
-  control, 
-  name, 
-  errors, 
-  isPassword = false, 
-  showSecureText = true, 
-  setShowSecureText = () => {} 
-}: ProfileFieldProps) => {
+const ProfileField = React.memo(({ label, value }: ProfileFieldProps) => {
   return (
     <View style={styles.fieldContainer}>
       <View style={styles.labelContainer}>
@@ -101,57 +100,12 @@ const ProfileField = React.memo(({
   );
 });
 
-const EditField = React.memo(({ 
-  label, 
-  value, 
-  control, 
-  name, 
-  errors, 
-  isPassword = false, 
-  showSecureText = true, 
-  setShowSecureText = () => {} 
-}: Omit<ProfileFieldProps, 'isEditing'>) => {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      defaultValue={value}
-      render={({ field: { onChange, onBlur, value } }) => (
-        <View style={styles.inputContainer}>
-          <TextInput
-            mode="outlined"
-            label={label}
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            secureTextEntry={isPassword && showSecureText}
-            style={styles.input}
-            error={!!errors[name]}
-            right={
-              isPassword ? (
-                <TextInput.Icon
-                  icon={showSecureText ? "eye" : "eye-off"}
-                  forceTextInputFocus={false}
-                  onPress={() => setShowSecureText(!showSecureText)}
-                />
-              ) : null
-            }
-          />
-          {errors[name]?.message && (
-            <HelperText type="error" visible={!!errors[name]}>
-              {errors[name]?.message}
-            </HelperText>
-          )}
-        </View>
-      )}
-    />
-  );
-});
-
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
   const sessionData = useSelector(sessionDataSelector);
-  const profileData = useSelector(profileDataSelector) as ProfileResponse | undefined;
+  const profileData = useSelector(profileDataSelector) as
+    | ProfileResponse
+    | undefined;
   const successUpdate = useSelector(successUpdateSelector);
   const isLoadingProfile = useSelector(loadingProfileSelector);
   const isLoadingUpdateProfile = useSelector(loadingUpdateSelector);
@@ -160,11 +114,18 @@ export default function Profile() {
   const [showSecureText2, setShowSecureText2] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  React.useEffect(() => {
+  const fetchProfileData = React.useCallback(() => {
     if (sessionData) {
       dispatch(fetchProfile());
     }
-  }, [sessionData]);
+  }, [sessionData, dispatch]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfileData();
+    }, [fetchProfileData])
+  );
 
   const {
     control,
@@ -202,37 +163,36 @@ export default function Profile() {
     if (successUpdate) {
       setIsEditing(false);
     }
-  },[successUpdate]);
+  }, [successUpdate]);
 
   const onSubmit = (data: ProfileUpdateRequest) => {
-    console.log("Submitting:", data);
     dispatch(fetchUpdateProfile(data));
   };
 
-  const fields = useMemo(() => [
-    { label: "Nombre", name: "name" as keyof ProfileUpdateRequest, value: profileData?.name || formValues.name },
-    { label: "Correo", name: "email" as keyof ProfileUpdateRequest, value: profileData?.email || formValues.email },
-    { label: "Teléfono", name: "phone" as keyof ProfileUpdateRequest, value: profileData?.phone || formValues.phone },
-  ], [formValues, profileData]);
+  const fields = useMemo(
+    () => [
+      {
+        label: "Nombre",
+        name: "name" as keyof ProfileUpdateRequest,
+        value: profileData?.name || formValues.name,
+      },
+      {
+        label: "Correo",
+        name: "email" as keyof ProfileUpdateRequest,
+        value: profileData?.email || formValues.email,
+      },
+      {
+        label: "Teléfono",
+        name: "phone" as keyof ProfileUpdateRequest,
+        value: profileData?.phone || formValues.phone,
+      },
+    ],
+    [formValues, profileData]
+  );
 
-  const passwordFields = useMemo(() => [
-    {
-      label: "Contraseña",
-      name: "password" as keyof ProfileUpdateRequest,
-      value: formValues.password || "",
-      isPassword: true,
-      showSecureText,
-      setShowSecureText,
-    },
-    {
-      label: "Confirmar Contraseña",
-      name: "passwordConfirmation" as keyof ProfileUpdateRequest,
-      value: formValues.passwordConfirmation || "",
-      isPassword: true,
-      showSecureText: showSecureText2,
-      setShowSecureText: setShowSecureText2,
-    },
-  ], [formValues, showSecureText, showSecureText2]);
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>
@@ -253,7 +213,7 @@ export default function Profile() {
             key={field.name}
             name={field.name}
             label={field.label}
-            value={field.value || ''} 
+            value={field.value || ""}
             isEditing={false}
             control={control}
             errors={errors}
@@ -285,7 +245,10 @@ export default function Profile() {
               />
             </View>
 
-            <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalScrollContent}>
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+            >
               <View style={styles.formContainer}>
                 <Controller
                   control={control}
@@ -357,7 +320,7 @@ export default function Profile() {
                   <Text variant="titleSmall" style={styles.sectionTitle}>
                     Cambiar Contraseña
                   </Text>
-                  
+
                   <Controller
                     control={control}
                     name="password"
@@ -411,7 +374,10 @@ export default function Profile() {
                     )}
                   />
                   {errors.passwordConfirmation && (
-                    <HelperText type="error" visible={!!errors.passwordConfirmation}>
+                    <HelperText
+                      type="error"
+                      visible={!!errors.passwordConfirmation}
+                    >
                       {errors.passwordConfirmation.message}
                     </HelperText>
                   )}
@@ -443,9 +409,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   title: {
@@ -461,50 +427,50 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
   },
   value: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   inputContainer: {
     marginBottom: 16,
   },
   input: {
     marginTop: 10,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     margin: 0,
-    marginTop: 'auto',
+    marginTop: "auto",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: '98%',
+    height: "98%",
   },
   modalContent: {
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   modalTitleContainer: {
     flex: 1,
     marginRight: 16,
   },
   modalTitle: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalSubtitle: {
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   modalScroll: {
@@ -521,11 +487,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   sectionTitle: {
     marginBottom: 16,
-    color: '#666',
+    color: "#666",
   },
   button: {
     marginTop: 32,
@@ -536,4 +502,3 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 });
-
