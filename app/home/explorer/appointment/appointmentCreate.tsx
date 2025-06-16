@@ -9,25 +9,54 @@ import { useSelector } from "react-redux";
 import { routeSelector } from "@/selectors/explorerSelector";
 import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 const { height } = Dimensions.get("window");
+
+const appointmentSchema = z.object({
+  date: z.string().min(1, "Por favor selecciona una fecha"),
+  time: z.string().min(1, "Por favor selecciona un horario"),
+  visitors: z.string().min(1, "Por favor selecciona el número de visitantes"),
+});
+
+type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
 export default function AppointmentCreate() {
   const navigation = useNavigation();
   const router = useRouter();
-  const [time, setTime] = useState<string | undefined>();
-  const [visitors, setVisitors] = useState<string | undefined>(undefined);
   const [timeSlots, setTimeSlots] = useState<{ label: string; value: string; }[]>([]);
   const route = useSelector(routeSelector);
   const theme = useTheme();
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<AppointmentFormData>({
+    resolver: zodResolver(appointmentSchema),
+    mode: "onChange",
+  });
+
+  const selectedDate = watch("date");
 
   useEffect(() => {
     navigation.setOptions({ headerBackTitle: "Atrás", title: route?.name || "-" });
   }, [navigation, route]);
 
   useEffect(() => {
-    setTime(undefined); // Reset time when time slots change
-  }, [timeSlots]);
+    if (timeSlots.length === 0) {
+      setValue("time", "");
+    }
+  }, [timeSlots, setValue]);
+
+  const onSubmit = (data: AppointmentFormData) => {
+    console.log("Form data:", data);
+    router.push("/home/explorer/appointment/appointmentDetail");
+  };
 
   return (
     <CustomSafeAreaView>
@@ -109,60 +138,75 @@ export default function AppointmentCreate() {
               <Text variant="titleSmall" style={styles.titleScheduled}>
                 Por favor elige un horario
               </Text>
-              <CustomCalendar 
-                daysWeekEnabled={route?.organization?.daysWeekEnabled || []}
-                timeOpenWeek={route?.organization?.timeOpenWeek}
-                timeCloseWeek={route?.organization?.timeCloseWeek}
-                timeOpenSaturday={route?.organization?.timeOpenSaturday}
-                timeCloseSaturday={route?.organization?.timeCloseSaturday}
-                timeOpenSunday={route?.organization?.timeOpenSunday}
-                timeCloseSunday={route?.organization?.timeCloseSunday}
-                routeMinutes={Number(route?.minutes) || 60}
-                onTimeSlotsChange={setTimeSlots}
+              <Controller
+                control={control}
+                name="date"
+                render={({ field: { onChange, value } }) => (
+                  <CustomCalendar 
+                    daysWeekEnabled={route?.organization?.daysWeekEnabled || []}
+                    timeOpenWeek={route?.organization?.timeOpenWeek}
+                    timeCloseWeek={route?.organization?.timeCloseWeek}
+                    timeOpenSaturday={route?.organization?.timeOpenSaturday}
+                    timeCloseSaturday={route?.organization?.timeCloseSaturday}
+                    timeOpenSunday={route?.organization?.timeOpenSunday}
+                    timeCloseSunday={route?.organization?.timeCloseSunday}
+                    routeMinutes={Number(route?.minutes) || 60}
+                    onTimeSlotsChange={setTimeSlots}
+                    onDayPress={(date) => {
+                      onChange(date);
+                      setValue("time", "");
+                    }}
+                    selectedDate={value}
+                  />
+                )}
               />
+              {errors.date && (
+                <Text style={styles.errorText}>{errors.date.message}</Text>
+              )}
               <Divider style={styles.divider} />
-              <Dropdown
-                label="Visitantes"
-                placeholder="Elige un numero de visitantes"
-                value={visitors}
-                onSelect={setVisitors}
-                options={[
-                  {
-                    label: "1",
-                    value: "1",
-                  },
-                  {
-                    label: "2",
-                    value: "2",
-                  },
-                  {
-                    label: "3",
-                    value: "3",
-                  },
-                  {
-                    label: "4",
-                    value: "4",
-                  },
-                  {
-                    label: "5",
-                    value: "5",
-                  },
-                ]}
+              <Controller
+                control={control}
+                name="visitors"
+                render={({ field: { onChange, value } }) => (
+                  <Dropdown
+                    label="Visitantes"
+                    placeholder="Elige un numero de visitantes"
+                    value={value}
+                    onSelect={onChange}
+                    options={[
+                      { label: "1", value: "1" },
+                      { label: "2", value: "2" },
+                      { label: "3", value: "3" },
+                      { label: "4", value: "4" },
+                      { label: "5", value: "5" },
+                    ]}
+                  />
+                )}
               />
+              {errors.visitors && (
+                <Text style={styles.errorText}>{errors.visitors.message}</Text>
+              )}
             </View>
-            <Dropdown
-              label="Horario"
-              value={time}
-              onSelect={setTime}
-              options={timeSlots}
+            <Controller
+              control={control}
+              name="time"
+              render={({ field: { onChange, value } }) => (
+                <Dropdown
+                  label="Horario"
+                  value={value}
+                  onSelect={onChange}
+                  options={timeSlots}
+                />
+              )}
             />
+            {errors.time && (
+              <Text style={styles.errorText}>{errors.time.message}</Text>
+            )}
             <Button
               mode="contained"
-              onPress={() => {
-                router.push("/home/explorer/appointment/appointmentDetail");
-              }}
+              onPress={handleSubmit(onSubmit)}
               style={styles.button}
-              disabled={!time || !visitors}
+              disabled={!isValid}
             >
               Agendar
             </Button>
@@ -240,5 +284,10 @@ const styles = StyleSheet.create({
   },
   addressIcon: {
     marginRight: 4,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
   },
 });

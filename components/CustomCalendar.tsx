@@ -26,6 +26,8 @@ interface CustomCalendarProps {
   timeCloseSunday?: string | null;
   routeMinutes?: number;
   onTimeSlotsChange?: (slots: TimeSlot[]) => void;
+  onDayPress?: (date: string) => void;
+  selectedDate?: string;
 }
 
 export default function CustomCalendar({
@@ -37,11 +39,12 @@ export default function CustomCalendar({
   timeOpenSunday,
   timeCloseSunday,
   routeMinutes = 60,
-  onTimeSlotsChange
+  onTimeSlotsChange,
+  onDayPress,
+  selectedDate
 }: CustomCalendarProps) {
   const [minDate, setMinDate] = useState("");
   const [maxDate, setMaxDate] = useState("");
-  const [selected, setSelected] = useState("");
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
 
   const generateTimeSlots = (startTime: string, endTime: string): TimeSlot[] => {
@@ -132,13 +135,13 @@ export default function CustomCalendar({
   }, [daysWeekEnabled]);
 
   useEffect(() => {
-    if (selected) {
-      const timeSlots = getTimeSlotsForDay(selected);
+    if (selectedDate) {
+      const timeSlots = getTimeSlotsForDay(selectedDate);
       onTimeSlotsChange?.(timeSlots);
     } else {
       onTimeSlotsChange?.([]);
     }
-  }, [selected, timeOpenWeek, timeCloseWeek, timeOpenSaturday, timeCloseSaturday, timeOpenSunday, timeCloseSunday, routeMinutes]);
+  }, [selectedDate, timeOpenWeek, timeCloseWeek, timeOpenSaturday, timeCloseSaturday, timeOpenSunday, timeCloseSunday, routeMinutes]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -148,8 +151,8 @@ export default function CustomCalendar({
         maxDate={maxDate}
         markedDates={{
           ...markedDates,
-          [selected]: {
-            ...markedDates[selected],
+          [selectedDate || ""]: {
+            ...markedDates[selectedDate || ""],
             selected: true,
             selectedColor: "#008000",
           },
@@ -157,7 +160,7 @@ export default function CustomCalendar({
         disableAllTouchEventsForDisabledDays={true}
         onDayPress={(day: { dateString: string }) => {
           console.log("Selected day", day.dateString);
-          setSelected(day.dateString);
+          onDayPress?.(day.dateString);
         }}
       />
     </View>
