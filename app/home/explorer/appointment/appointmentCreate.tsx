@@ -3,11 +3,12 @@ import CustomCalendar from "@/components/CustomCalendar";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Image, Dimensions, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Divider, Button } from "react-native-paper";
+import { Text, Card, Divider, Button, useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import { useSelector } from "react-redux";
 import { routeSelector } from "@/selectors/explorerSelector";
-import { getDifficultyTranslation } from "@/types/Route";
+import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { height } = Dimensions.get("window");
 
@@ -17,9 +18,10 @@ export default function AppointmentCreate() {
   const [time, setTime] = useState<string | undefined>();
   const [visitors, setVisitors] = useState<string | undefined>(undefined);
   const route = useSelector(routeSelector);
+  const theme = useTheme();
 
   useEffect(() => {
-    navigation.setOptions({ headerBackTitle: "Atrás", title: route?.organization?.name || "-" });
+    navigation.setOptions({ headerBackTitle: "Atrás", title: route?.name || "-" });
   }, [navigation, route]);
 
   return (
@@ -35,18 +37,29 @@ export default function AppointmentCreate() {
       >
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleSmall" style={styles.title}>
-              Ruta
-            </Text>
-            <Text variant="bodySmall" style={styles.text}>
-              {route?.name}
-            </Text>
-            <Text variant="titleSmall" style={styles.title}>
-              Dirección
-            </Text>
-            <Text variant="bodySmall" style={styles.text}>
-              {route?.organization?.address}
-            </Text>
+            <View style={styles.organizationContainer}>
+              <Image
+                source={{ uri: route?.organization?.image?.publicUrl }}
+                style={styles.organizationImage}
+                resizeMode="cover"
+              />
+              <View style={styles.organizationInfo}>
+                <Text variant="bodySmall" style={styles.title}>
+                  {route?.organization?.name}
+                </Text>
+                <View style={styles.addressContainer}>
+                  <MaterialCommunityIcons
+                    name="map-marker"
+                    size={16}
+                    color={theme.colors.primary}
+                    style={styles.addressIcon}
+                  />
+                  <Text variant="bodySmall" style={styles.text}>
+                    {route?.organization?.address}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </Card.Content>
         </Card>
 
@@ -59,19 +72,29 @@ export default function AppointmentCreate() {
               {route?.description}
             </Text>
 
-            <Text variant="titleSmall" style={styles.title}>
-              Duración
-            </Text>
-            <Text variant="bodySmall" style={styles.text}>
-              {route?.minutes} minutos
-            </Text>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={20}
+                color={theme.colors.primary}
+                style={styles.infoIcon}
+              />
+              <Text variant="bodySmall" style={styles.infoText}>
+                Duración: <Text style={styles.value}>{route?.minutes} minutos</Text>
+              </Text>
+            </View>
 
-            <Text variant="titleSmall" style={styles.title}>
-              Dificultad
-            </Text>
-            <Text variant="bodySmall" style={styles.text}>
-              {getDifficultyTranslation(route?.hardness)}
-            </Text>
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons
+                name="run"
+                size={20}
+                color={getDifficultyColor(route?.hardness)}
+                style={styles.infoIcon}
+              />
+              <Text variant="bodySmall" style={styles.infoText}>
+                Dificultad: <Text style={styles.value}>{getDifficultyTranslation(route?.hardness)}</Text>
+              </Text>
+            </View>
           </Card.Content>
         </Card>
 
@@ -173,5 +196,42 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: 8,
+  },
+  organizationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  organizationImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
+  },
+  organizationInfo: {
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
+  infoText: {
+    color: '#333',
+  },
+  value: {
+    color: '#222',
+    fontWeight: 'bold',
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  addressIcon: {
+    marginRight: 4,
   },
 });
