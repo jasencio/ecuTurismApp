@@ -17,12 +17,17 @@ export default function AppointmentCreate() {
   const router = useRouter();
   const [time, setTime] = useState<string | undefined>();
   const [visitors, setVisitors] = useState<string | undefined>(undefined);
+  const [timeSlots, setTimeSlots] = useState<{ label: string; value: string; }[]>([]);
   const route = useSelector(routeSelector);
   const theme = useTheme();
 
   useEffect(() => {
     navigation.setOptions({ headerBackTitle: "Atrás", title: route?.name || "-" });
   }, [navigation, route]);
+
+  useEffect(() => {
+    setTime(undefined); // Reset time when time slots change
+  }, [timeSlots]);
 
   return (
     <CustomSafeAreaView>
@@ -104,7 +109,17 @@ export default function AppointmentCreate() {
               <Text variant="titleSmall" style={styles.titleScheduled}>
                 Por favor elige un horario
               </Text>
-              <CustomCalendar />
+              <CustomCalendar 
+                daysWeekEnabled={route?.organization?.daysWeekEnabled || []}
+                timeOpenWeek={route?.organization?.timeOpenWeek}
+                timeCloseWeek={route?.organization?.timeCloseWeek}
+                timeOpenSaturday={route?.organization?.timeOpenSaturday}
+                timeCloseSaturday={route?.organization?.timeCloseSaturday}
+                timeOpenSunday={route?.organization?.timeOpenSunday}
+                timeCloseSunday={route?.organization?.timeCloseSunday}
+                routeMinutes={Number(route?.minutes) || 60}
+                onTimeSlotsChange={setTimeSlots}
+              />
               <Divider style={styles.divider} />
               <Dropdown
                 label="Visitantes"
@@ -139,16 +154,7 @@ export default function AppointmentCreate() {
               label="Horario"
               value={time}
               onSelect={setTime}
-              options={[
-                {
-                  label: "10:00 a 11:00",
-                  value: "1",
-                },
-                {
-                  label: "11:00 a 12:00",
-                  value: "2",
-                },
-              ]}
+              options={timeSlots}
             />
             <Button
               mode="contained"
@@ -156,6 +162,7 @@ export default function AppointmentCreate() {
                 router.push("/home/explorer/appointment/appointmentDetail");
               }}
               style={styles.button}
+              disabled={!time || !visitors}
             >
               Agendar
             </Button>
