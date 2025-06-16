@@ -4,10 +4,11 @@ import Locations from "@/screens/locations";
 import Profile from "@/screens/profile";
 import React from "react";
 import { BottomNavigation, useTheme } from "react-native-paper";
+import { TAB_INDICES } from "@/constants/tabs";
 
 const HomePage = () => {
   const theme = useTheme();
-  const [index, setIndex] = React.useState(1);
+  const [index, setIndex] = React.useState(TAB_INDICES.LOCATIONS);
   const [routes] = React.useState([
     {
       key: "appoinments",

@@ -26,6 +26,7 @@ import { ProfileResponse, ProfileUpdateRequest } from "@/types/Profile";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useFocusEffect } from "expo-router";
+import { TAB_INDICES } from "@/constants/tabs";
 
 // Validation Schema using Zod
 const schema = z
@@ -126,7 +127,7 @@ export default function Profile({ currentTab }: ProfileProps) {
 
   // Fetch when tab changes to profile
   React.useEffect(() => {
-    if (currentTab === 2) { // 2 is the index of the profile tab
+    if (currentTab === TAB_INDICES.PROFILE) {
       fetchProfileData();
     }
   }, [currentTab, fetchProfileData]);
@@ -134,7 +135,7 @@ export default function Profile({ currentTab }: ProfileProps) {
   // Fetch when screen comes into focus and we're on profile tab
   useFocusEffect(
     React.useCallback(() => {
-      if (currentTab === 2) {
+      if (currentTab === TAB_INDICES.PROFILE) {
         fetchProfileData();
       }
     }, [currentTab, fetchProfileData])
