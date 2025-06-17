@@ -1,40 +1,57 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
+import { appointmentSelector } from "@/selectors/explorerSelector";
+import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
 import { useNavigation } from "expo-router";
 import { useEffect } from "react";
 import { Image, Dimensions, StyleSheet, ScrollView, View } from "react-native";
 import { Text, Card, useTheme, IconButton, Surface, Divider } from "react-native-paper";
+import { useSelector } from "react-redux";
 
 const { height } = Dimensions.get("window");
+
+const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return "";
+  
+  try {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    };
+    
+    return date.toLocaleDateString('es-ES', options);
+  } catch (error) {
+    return dateString;
+  }
+};
+
+const formatTime = (timeString: string | undefined) => {
+  if (!timeString) return "";
+  
+  try {
+    // Create a date object from the time string
+    const date = new Date(timeString);
+    
+    // Format the time in 24-hour format with minutes
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+  } catch (error) {
+    // If parsing fails, try to extract just the time part
+    const timeMatch = timeString.match(/(\d{2}:\d{2})/);
+    return timeMatch ? timeMatch[1] : timeString;
+  }
+};
 
 export default function AppointmentDetail() {
   const navigation = useNavigation();
   const theme = useTheme();
-
-  const imageUrl = "https://picsum.photos/700"; // Replace with your own image URL
-
-  const data = {
-    location: "Bike Park",
-    route: "Sendero 1",
-    address: "Av. XYZ y Av. Abc",
-    description:
-      "Hermosa ruta de senderismo a través de un frondoso bosque y vistas al río.",
-    minutes: 120,
-    hardness: "Moderado",
-    date: "01/05/2025",
-    time: "09:00 am",
-    visitors: 10,
-  };
-  const {
-    description,
-    minutes,
-    hardness,
-    location,
-    route,
-    address,
-    date,
-    time,
-    visitors,
-  } = data;
+  const appointment = useSelector(appointmentSelector);
 
   useEffect(() => {
     navigation.setOptions({ headerBackTitle: "Atras" });
@@ -43,12 +60,12 @@ export default function AppointmentDetail() {
   const InfoSection = ({ title, content, icon }: { title: string; content: string; icon: string }) => (
     <View style={styles.infoSection}>
       <View style={styles.infoHeader}>
-        <IconButton icon={icon} size={24} iconColor={theme.colors.primary} />
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+        <IconButton icon={icon} size={20} iconColor={theme.colors.primary} />
+        <Text variant="titleSmall" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
           {title}
         </Text>
       </View>
-      <Text variant="bodyMedium" style={[styles.sectionContent, { color: theme.colors.onSurfaceVariant }]}>
+      <Text variant="bodySmall" style={[styles.sectionContent, { color: theme.colors.onSurfaceVariant }]}>
         {content}
       </Text>
     </View>
@@ -58,16 +75,16 @@ export default function AppointmentDetail() {
     <CustomSafeAreaView>
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: appointment?.route?.mainImage?.publicUrl }}
           style={styles.image}
           resizeMode="cover"
         />
         <Surface style={[styles.imageOverlay, { backgroundColor: theme.colors.surface }]}>
           <Text variant="headlineMedium" style={[styles.locationTitle, { color: theme.colors.onSurface }]}>
-            {location}
+            {appointment?.route?.organization?.name}
           </Text>
           <Text variant="titleMedium" style={[styles.routeTitle, { color: theme.colors.primary }]}>
-            {route}
+            {appointment?.route?.name}
           </Text>
         </Surface>
       </View>
@@ -81,13 +98,13 @@ export default function AppointmentDetail() {
           <Card.Content style={styles.cardContent}>
             <InfoSection 
               title="Dirección" 
-              content={address} 
+              content={appointment?.route?.organization?.address || ""} 
               icon="map-marker"
             />
             <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
             <InfoSection 
               title="Descripción" 
-              content={description} 
+              content={appointment?.route?.description || ""} 
               icon="text-box"
             />
           </Card.Content>
@@ -96,37 +113,41 @@ export default function AppointmentDetail() {
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.detailsGrid}>
-              <View style={styles.detailItem}>
-                <IconButton 
-                  icon="clock-outline" 
-                  size={24} 
-                  iconColor={theme.colors.primary}
-                  style={styles.detailIcon}
-                />
-                <View>
-                  <Text variant="bodySmall" style={[styles.detailLabel, { color: theme.colors.onSurfaceVariant }]}>
-                    Duración
-                  </Text>
-                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                    {minutes} minutos
-                  </Text>
+              <View style={styles.detailRow}>
+                <View style={styles.detailItem}>
+                  <IconButton 
+                    icon="clock-outline" 
+                    size={24} 
+                    iconColor={theme.colors.primary}
+                    style={styles.detailIcon}
+                  />
+                  <View>
+                    <Text variant="bodySmall" style={[styles.detailLabel, { color: theme.colors.onSurfaceVariant }]}>
+                      Duración
+                    </Text>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                      {appointment?.route?.minutes} minutos
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.detailItem}>
-                <IconButton 
-                  icon="trending-up" 
-                  size={24} 
-                  iconColor={theme.colors.primary}
-                  style={styles.detailIcon}
-                />
-                <View>
-                  <Text variant="bodySmall" style={[styles.detailLabel, { color: theme.colors.onSurfaceVariant }]}>
-                    Dificultad
-                  </Text>
-                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                    {hardness}
-                  </Text>
+                <View style={styles.detailItem}>
+                  <IconButton 
+                    icon="trending-up" 
+                    size={24} 
+                    iconColor={getDifficultyColor(appointment?.route?.hardness)}
+                    style={styles.detailIcon}
+                  />
+                  <View>
+                    <Text variant="bodySmall" style={[styles.detailLabel, { color: theme.colors.onSurfaceVariant }]}>
+                      Dificultad
+                    </Text>
+                    <View style={[styles.difficultyChip, { backgroundColor: getDifficultyColor(appointment?.route?.hardness) }]}>
+                      <Text style={styles.difficultyText}>
+                        {getDifficultyTranslation(appointment?.route?.hardness)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
@@ -148,7 +169,7 @@ export default function AppointmentDetail() {
                     Fecha
                   </Text>
                   <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                    {date}
+                    {formatDate(appointment?.eventDate)}
                   </Text>
                 </View>
               </View>
@@ -162,10 +183,10 @@ export default function AppointmentDetail() {
                 />
                 <View>
                   <Text variant="bodySmall" style={[styles.detailLabel, { color: theme.colors.onSurfaceVariant }]}>
-                    Hora
+                    Horario
                   </Text>
                   <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                    {time}
+                    {formatTime(appointment?.eventTimeInit)} - {formatTime(appointment?.eventTimeEnd)}
                   </Text>
                 </View>
               </View>
@@ -182,7 +203,7 @@ export default function AppointmentDetail() {
                     Visitantes
                   </Text>
                   <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                    {visitors} personas
+                    {appointment?.groupSize} personas
                   </Text>
                 </View>
               </View>
@@ -197,7 +218,7 @@ export default function AppointmentDetail() {
 const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
-    height: height * 0.3,
+    height: height * 0.25,
   },
   image: {
     height: '100%',
@@ -208,60 +229,79 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    padding: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     elevation: 4,
   },
   locationTitle: {
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   routeTitle: {
     fontWeight: '500',
   },
   content: {
-    padding: 16,
-    gap: 16,
+    padding: 8,
+    gap: 8,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   cardContent: {
-    padding: 16,
+    padding: 8,
   },
   infoSection: {
-    marginBottom: 16,
+    marginBottom: 4,
   },
   infoHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 0,
   },
   sectionTitle: {
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sectionContent: {
-    marginLeft: 48,
-    lineHeight: 20,
+    marginLeft: 40,
+    lineHeight: 16,
   },
   divider: {
-    marginVertical: 16,
+    marginVertical: 4,
     opacity: 0.5,
   },
   detailsGrid: {
-    gap: 16,
+    gap: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%',
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   detailIcon: {
     margin: 0,
-    marginRight: 8,
+    marginRight: 4,
   },
   detailLabel: {
-    marginBottom: 2,
+    marginBottom: 0,
+  },
+  difficultyChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  difficultyText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

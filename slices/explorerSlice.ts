@@ -1,5 +1,6 @@
 import { Organization, OrganizationListResponse } from "@/types/Organization";
 import { Route, RouteListResponse } from "@/types/Route";
+import { Appointment, AppointmentCreate } from "@/types/Appointment";
 import axiosInstance from "@/utils/axiosInstance";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
@@ -16,6 +17,9 @@ interface ExplorerState {
   route?: Route;
   loadingRoute: boolean;
   errorRoute: string | null;
+  creatingAppointment: boolean;
+  errorCreatingAppointment: string | null;
+  appointment: Appointment | null;
 }
 
 const initialState: ExplorerState = {
@@ -31,6 +35,9 @@ const initialState: ExplorerState = {
   route: undefined,
   loadingRoute: false,
   errorRoute: null,
+  creatingAppointment: false,
+  errorCreatingAppointment: null,
+  appointment: null,
 };
 
 export const getOrganizations = createAsyncThunk(
@@ -85,6 +92,18 @@ export const getRoute = createAsyncThunk(
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al obtener la ruta");
+    }
+  }
+);
+
+export const createAppointment = createAsyncThunk(
+  "explorer/createAppointment",
+  async (appointmentData: AppointmentCreate, thunkAPI) => {
+    try {
+      const response = await axiosInstance.post("/explorer/appointments", appointmentData);
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al crear la cita");
     }
   }
 );
@@ -155,6 +174,20 @@ export const explorerSlice = createSlice({
         state.loadingRoute = false;
         state.errorRoute =
           action?.error?.message || "Error al obtener la ruta";
+      })
+      // Create Appointment
+      .addCase(createAppointment.pending, (state) => {
+        state.creatingAppointment = true;
+        state.errorCreatingAppointment = null;
+      })
+      .addCase(createAppointment.fulfilled, (state, action) => {
+        state.creatingAppointment = false;
+        state.appointment = action.payload;
+      })
+      .addCase(createAppointment.rejected, (state, action) => {
+        state.creatingAppointment = false;
+        state.errorCreatingAppointment =
+          action?.error?.message || "Error al crear el agendamiento";
       });
   },
 });

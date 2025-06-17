@@ -5,13 +5,16 @@ import { useEffect, useState } from "react";
 import { View, Image, Dimensions, StyleSheet, ScrollView } from "react-native";
 import { Text, Card, Divider, Button, useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
-import { useSelector } from "react-redux";
-import { routeSelector } from "@/selectors/explorerSelector";
+import { useDispatch, useSelector } from "react-redux";
+import { appointmentSelector, creatingAppointmentSelector, routeSelector } from "@/selectors/explorerSelector";
 import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { AppDispatch } from "@/store";
+import { createAppointment } from "@/slices/explorerSlice";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const { height } = Dimensions.get("window");
 
@@ -28,7 +31,10 @@ export default function AppointmentCreate() {
   const router = useRouter();
   const [timeSlots, setTimeSlots] = useState<{ label: string; value: string; }[]>([]);
   const route = useSelector(routeSelector);
+  const isCreatingAppointment = useSelector(creatingAppointmentSelector);
+  const appointment = useSelector(appointmentSelector);
   const theme = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
 
   const {
     control,
@@ -41,8 +47,6 @@ export default function AppointmentCreate() {
     mode: "onChange",
   });
 
-  const selectedDate = watch("date");
-
   useEffect(() => {
     navigation.setOptions({ headerBackTitle: "Atrás", title: route?.name || "-" });
   }, [navigation, route]);
@@ -53,13 +57,35 @@ export default function AppointmentCreate() {
     }
   }, [timeSlots, setValue]);
 
+  useEffect(() => {
+    if (appointment) {
+      router.push("/home/explorer/appointment/appointmentDetail");
+    }
+  }, [appointment]);
+
   const onSubmit = (data: AppointmentFormData) => {
-    console.log("Form data:", data);
-    router.push("/home/explorer/appointment/appointmentDetail");
+    if (!route?.id) return;
+
+    console.log("data", data);
+
+    // Split the time range into start and end times
+    const [startTimeStr, endTimeStr] = data.time.split('-');
+    
+    const appointmentData = {
+      routeId: route.id,
+      eventDate: data.date,
+      eventTimeInit: startTimeStr.trim(),
+      eventTimeEnd: endTimeStr.trim(),
+      groupSize: parseInt(data.visitors)
+    };
+
+    console.log("appointmentData", appointmentData);
+    dispatch(createAppointment(appointmentData));
   };
 
   return (
     <CustomSafeAreaView>
+      <LoadingOverlay visible={isCreatingAppointment} />
       <Image
         source={{ uri: route?.mainImage?.publicUrl }}
         style={styles.image}

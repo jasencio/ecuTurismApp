@@ -62,3 +62,22 @@ export const errorRouteSelector = createSelector(
   explorerState,
   (state) => state.errorRoute
 );
+
+export const appointmentSelector = createSelector(
+  explorerState,
+  (state) => state.appointment
+);
+
+export const creatingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.creatingAppointment
+);
+
+export const errorCreatingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.errorCreatingAppointment
+);
+
+
+
+

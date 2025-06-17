@@ -1,13 +1,23 @@
+import { Route } from "./Route";
+import { User } from "./Users";
+
 export interface Appointment {
-    id: string;
-    location: string;
-    route: string;
-    date: string;
-    time: string;
-    status: 'confirmado' | 'pendiente';
-    image: string;
-    userName: string;
-    userEmail: string;
-    visitors: number;
-    guideName: string;
-  }
+  id: string;
+  tourist: User;
+  route: Route;
+  groupSize: number;
+  eventDate: string;
+  eventTimeInit: string;
+  eventTimeEnd: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AppointmentCreate {
+  routeId: string;
+  eventDate: string;
+  eventTimeInit: string;
+  eventTimeEnd: string;
+  groupSize: number;
+}
