@@ -93,3 +93,27 @@ export const errorAppointmentsSelector = createSelector(
   (state) => state.errorAppointments
 );
 
+export const loadingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.loadingAppointment
+);
+
+export const errorAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.errorAppointment
+);
+
+export const cancellingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.cancellingAppointment
+);
+
+export const errorCancellingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.errorCancellingAppointment
+);
+
+export const successCancellingAppointmentSelector = createSelector(
+  explorerState,
+  (state) => state.successCancellingAppointment
+);

@@ -23,6 +23,11 @@ interface ExplorerState {
   loadingAppointments: boolean;
   errorAppointments: string | null;
   appointments?: Appointment[];
+  loadingAppointment: boolean;
+  errorAppointment: string | null;
+  cancellingAppointment: boolean;
+  errorCancellingAppointment: string | null;
+  successCancellingAppointment: boolean;
 }
 
 const initialState: ExplorerState = {
@@ -44,6 +49,11 @@ const initialState: ExplorerState = {
   loadingAppointments: false,
   errorAppointments: null,
   appointments: [],
+  loadingAppointment: false,
+  errorAppointment: null,
+  cancellingAppointment: false,
+  errorCancellingAppointment: null,
+  successCancellingAppointment: false,
 };
 
 export const getOrganizations = createAsyncThunk(
@@ -106,7 +116,10 @@ export const createAppointment = createAsyncThunk(
   "explorer/createAppointment",
   async (appointmentData: AppointmentCreate, thunkAPI) => {
     try {
-      const response = await axiosInstance.post("/explorer/appointments", appointmentData);
+      const response = await axiosInstance.post(
+        "/explorer/appointments",
+        appointmentData
+      );
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al crear la cita");
@@ -122,6 +135,32 @@ export const getAppointments = createAsyncThunk(
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al obtener los agendamientos");
+    }
+  }
+);
+
+export const getAppointment = createAsyncThunk(
+  "explorer/getAppointment",
+  async (id: string, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get(`/explorer/appointments/${id}`);
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al obtener el agendamiento");
+    }
+  }
+);
+
+export const cancelAppointment = createAsyncThunk(
+  "explorer/cancelAppointment",
+  async (id: string, thunkAPI) => {
+    try {
+      const response = await axiosInstance.delete(
+        `/explorer/appointments/${id}/cancel`
+      );
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al cancelar el agendamiento");
     }
   }
 );
@@ -190,8 +229,7 @@ export const explorerSlice = createSlice({
       })
       .addCase(getRoute.rejected, (state, action) => {
         state.loadingRoute = false;
-        state.errorRoute =
-          action?.error?.message || "Error al obtener la ruta";
+        state.errorRoute = action?.error?.message || "Error al obtener la ruta";
       })
       // Create Appointment
       .addCase(createAppointment.pending, (state) => {
@@ -209,7 +247,7 @@ export const explorerSlice = createSlice({
       })
       // Get Appointments
       .addCase(getAppointments.pending, (state) => {
-        state.loadingAppointments = true;
+        state.successCancellingAppointment = false;state.loadingAppointments = true;
         state.appointments = undefined;
         state.error = null;
       })
@@ -221,6 +259,39 @@ export const explorerSlice = createSlice({
         state.loadingAppointments = false;
         state.error =
           action?.error?.message || "Error al obtener los agendamientos";
+      })
+
+      // Get Appointment
+      .addCase(getAppointment.pending, (state) => {
+        state.loadingAppointment = true;
+        state.appointment = null;
+        state.error = null;
+      })
+      .addCase(getAppointment.fulfilled, (state, action) => {
+        state.loadingAppointment = false;
+        state.appointment = action.payload;
+      })
+      .addCase(getAppointment.rejected, (state, action) => {
+        state.loadingAppointment = false;
+        state.error =
+          action?.error?.message || "Error al obtener el agendamiento";
+      })
+
+      // Cancel Appointment
+      .addCase(cancelAppointment.pending, (state) => {
+        state.cancellingAppointment = true;
+        state.errorCancellingAppointment = null;
+        state.successCancellingAppointment = false;
+      })
+      .addCase(cancelAppointment.fulfilled, (state, action) => {
+        state.cancellingAppointment = false;
+        state.successCancellingAppointment = true;
+      })
+      .addCase(cancelAppointment.rejected, (state, action) => {
+        state.cancellingAppointment = false;
+        state.successCancellingAppointment = false;
+        state.errorCancellingAppointment =
+          action?.error?.message || "Error al cancelar el agendamiento";
       });
   },
 });

@@ -15,6 +15,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { getOrganizations } from "@/slices/explorerSlice";
 import { AppDispatch } from "@/store";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { TAB_INDICES } from "@/constants/tabs";
 
 interface LocationCardProps {
   organization: Organization;
@@ -67,24 +68,20 @@ const CustomCard = ({ organization }: LocationCardProps) => {
   );
 };
 
-const Locations = () => {
+const Locations = ({ currentTab }: { currentTab: number }) => { 
 
   const organizations = useSelector(organizationsListSelector);
   const loading = useSelector(loadingOrganizationsListSelector);
   const sessionData = useSelector(sessionDataSelector);
   const dispatch = useDispatch<AppDispatch>();
 
-  const getOrganizationsData = React.useCallback(() => {
-    if (sessionData) {
-      dispatch(getOrganizations());
-    }
-  }, [sessionData, dispatch]);
-
   // Fetch when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      getOrganizationsData();
-    }, [getOrganizationsData])
+      if (currentTab === TAB_INDICES.LOCATIONS && sessionData) {
+        dispatch(getOrganizations());
+      }
+    }, [sessionData, dispatch, currentTab])
   );
 
   if (loading) {

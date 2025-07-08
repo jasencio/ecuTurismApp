@@ -11,16 +11,19 @@ import {
 } from "react-native-paper";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { getAppointments } from "@/slices/explorerSlice";
+import { cancelAppointment, getAppointments } from "@/slices/explorerSlice";
 import { AppDispatch } from "@/store";
 import {
   appointmentsSelector,
+  cancellingAppointmentSelector,
   loadingAppointmentsSelector,
+  successCancellingAppointmentSelector,
 } from "@/selectors/explorerSelector";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Appointment, AppointmentStatus } from "@/types/Appointment";
 import { TAB_INDICES } from "@/constants/tabs";
 import { formatDate, formatTime } from "@/utils/dateUtils";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 interface AppointmentsProps {
   currentTab: number;
@@ -46,6 +49,7 @@ const getStatusColor = (status: AppointmentStatus) => {
 const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
   const router = useRouter();
   const [visible, setVisible] = React.useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -78,16 +82,24 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
               <Menu.Item
                 onPress={() => {
                   closeMenu();
-                  router.push("/home/explorer/appointment/appointmentDetail");
+                  router.navigate({
+                    pathname: "/home/explorer/appointment/appointmentDetail",
+                    params: { id: appointment.id },
+                  });
                 }}
                 title="Ver detalles"
                 leadingIcon="eye"
               />
-              <Menu.Item
-                onPress={closeMenu}
-                title="Cancelar"
-                leadingIcon="close-circle"
-              />
+              {appointment.status === AppointmentStatus.PENDING && (
+                <Menu.Item
+                  onPress={() => {
+                    closeMenu();
+                    dispatch(cancelAppointment(appointment.id));
+                  }}
+                  title="Cancelar"
+                  leadingIcon="close-circle"
+                />
+              )}
             </Menu>
           </View>
         )}
@@ -99,7 +111,9 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
         </View>
         <View style={styles.dateTimeItem}>
           <IconButton icon="clock-outline" size={20} />
-          <Text variant="bodySmall">{formatTime(appointment.eventTimeInit)}</Text>
+          <Text variant="bodySmall">
+            {formatTime(appointment.eventTimeInit)}
+          </Text>
         </View>
       </View>
     </Surface>
@@ -110,8 +124,8 @@ const Appoinments = ({ currentTab }: AppointmentsProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const appointments = useSelector(appointmentsSelector);
   const loading = useSelector(loadingAppointmentsSelector);
-
-  console.log("currentTab", currentTab);
+  const cancelling = useSelector(cancellingAppointmentSelector);
+  const successCancelling = useSelector(successCancellingAppointmentSelector);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -128,23 +142,35 @@ const Appoinments = ({ currentTab }: AppointmentsProps) => {
     }
   }, [currentTab, dispatch]);
 
+  React.useEffect(() => {
+    if (successCancelling) {
+      dispatch(getAppointments());
+    }
+  }, [successCancelling, dispatch]);
+
   if (loading) {
     return <LoadingScreen />;
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text variant="titleMedium" style={styles.title}>
-        Agendamientos
-      </Text>
-      {appointments?.map((appointment) => (
-        <AppointmentCard key={appointment.id} appointment={appointment} />
-      ))}
-    </ScrollView>
+    <>
+      <LoadingOverlay
+        visible={cancelling}
+        message="Cancelando agendamiento..."
+      />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text variant="titleMedium" style={styles.title}>
+          Agendamientos
+        </Text>
+        {appointments?.map((appointment) => (
+          <AppointmentCard key={appointment.id} appointment={appointment} />
+        ))}
+      </ScrollView>
+    </>
   );
 };
 
