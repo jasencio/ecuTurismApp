@@ -1,19 +1,29 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import LottieAnimation from './LottieAnimation';
 
 interface LoadingScreenProps {
   message?: string;
   fullScreen?: boolean;
+  animationSource?: any;
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
   message = "Cargando...", 
-  fullScreen = true 
+  fullScreen = true,
+  animationSource
 }) => {
+  // Default blinking tree animation if none provided
+  const defaultAnimation = require('../assets/animations/nature-loading.json');
+  
   return (
     <View style={[styles.container, fullScreen && styles.fullScreen]}>
-      <ActivityIndicator size="large" color="#2196F3" />
+      <LottieAnimation
+        source={animationSource || defaultAnimation}
+        width={120}
+        height={120}
+      />
       <Text style={styles.message}>{message}</Text>
     </View>
   );
