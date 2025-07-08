@@ -1,6 +1,7 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import { appointmentSelector } from "@/selectors/explorerSelector";
 import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
+import { formatDate, formatTime } from "@/utils/dateUtils";
 import { useNavigation } from "expo-router";
 import { useEffect } from "react";
 import { Image, Dimensions, StyleSheet, ScrollView, View } from "react-native";
@@ -8,45 +9,6 @@ import { Text, Card, useTheme, IconButton, Surface, Divider } from "react-native
 import { useSelector } from "react-redux";
 
 const { height } = Dimensions.get("window");
-
-const formatDate = (dateString: string | undefined) => {
-  if (!dateString) return "";
-  
-  try {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    };
-    
-    return date.toLocaleDateString('es-ES', options);
-  } catch (error) {
-    return dateString;
-  }
-};
-
-const formatTime = (timeString: string | undefined) => {
-  if (!timeString) return "";
-  
-  try {
-    // Create a date object from the time string
-    const date = new Date(timeString);
-    
-    // Format the time in 24-hour format with minutes
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
-  } catch (error) {
-    // If parsing fails, try to extract just the time part
-    const timeMatch = timeString.match(/(\d{2}:\d{2})/);
-    return timeMatch ? timeMatch[1] : timeString;
-  }
-};
 
 export default function AppointmentDetail() {
   const navigation = useNavigation();

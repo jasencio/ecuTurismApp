@@ -78,6 +78,18 @@ export const errorCreatingAppointmentSelector = createSelector(
   (state) => state.errorCreatingAppointment
 );
 
+export const appointmentsSelector = createSelector(
+  explorerState,
+  (state) => state.appointments
+);
 
+export const loadingAppointmentsSelector = createSelector(
+  explorerState,
+  (state) => state.loadingAppointments
+);
 
+export const errorAppointmentsSelector = createSelector(
+  explorerState,
+  (state) => state.errorAppointments
+);
 

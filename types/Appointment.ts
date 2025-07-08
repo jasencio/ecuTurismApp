@@ -1,6 +1,14 @@
 import { Route } from "./Route";
 import { User } from "./Users";
 
+export enum AppointmentStatus {
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  CANCELLED = "CANCELLED",
+  COMPLETED = "COMPLETED",
+  FINISHED = "FINISHED"
+}
+
 export interface Appointment {
   id: string;
   tourist: User;
@@ -9,7 +17,7 @@ export interface Appointment {
   eventDate: string;
   eventTimeInit: string;
   eventTimeEnd: string;
-  status: string;
+  status: AppointmentStatus;
   createdAt: string;
   updatedAt: string;
 }

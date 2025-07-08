@@ -31,7 +31,7 @@ const HomePage = () => {
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
-    appoinments: Appoinments,
+    appoinments: () => <Appoinments currentTab={index} />,
     locations: Locations,
     profile: () => <Profile currentTab={index} />,
   });

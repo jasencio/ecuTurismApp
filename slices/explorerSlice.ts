@@ -20,6 +20,9 @@ interface ExplorerState {
   creatingAppointment: boolean;
   errorCreatingAppointment: string | null;
   appointment: Appointment | null;
+  loadingAppointments: boolean;
+  errorAppointments: string | null;
+  appointments?: Appointment[];
 }
 
 const initialState: ExplorerState = {
@@ -38,6 +41,9 @@ const initialState: ExplorerState = {
   creatingAppointment: false,
   errorCreatingAppointment: null,
   appointment: null,
+  loadingAppointments: false,
+  errorAppointments: null,
+  appointments: [],
 };
 
 export const getOrganizations = createAsyncThunk(
@@ -104,6 +110,18 @@ export const createAppointment = createAsyncThunk(
       return response?.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue("Error al crear la cita");
+    }
+  }
+);
+
+export const getAppointments = createAsyncThunk(
+  "explorer/getAppointments",
+  async (_: void, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get("/explorer/appointments");
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al obtener los agendamientos");
     }
   }
 );
@@ -188,6 +206,21 @@ export const explorerSlice = createSlice({
         state.creatingAppointment = false;
         state.errorCreatingAppointment =
           action?.error?.message || "Error al crear el agendamiento";
+      })
+      // Get Appointments
+      .addCase(getAppointments.pending, (state) => {
+        state.loadingAppointments = true;
+        state.appointments = undefined;
+        state.error = null;
+      })
+      .addCase(getAppointments.fulfilled, (state, action) => {
+        state.loadingAppointments = false;
+        state.appointments = action.payload;
+      })
+      .addCase(getAppointments.rejected, (state, action) => {
+        state.loadingAppointments = false;
+        state.error =
+          action?.error?.message || "Error al obtener los agendamientos";
       });
   },
 });

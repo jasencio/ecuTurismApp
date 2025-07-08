@@ -9,64 +9,43 @@ import {
   useTheme,
   Surface,
 } from "react-native-paper";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { getAppointments } from "@/slices/explorerSlice";
+import { AppDispatch } from "@/store";
+import {
+  appointmentsSelector,
+  loadingAppointmentsSelector,
+} from "@/selectors/explorerSelector";
+import LoadingScreen from "@/components/LoadingScreen";
+import { Appointment, AppointmentStatus } from "@/types/Appointment";
+import { TAB_INDICES } from "@/constants/tabs";
+import { formatDate, formatTime } from "@/utils/dateUtils";
 
-interface Appointment {
-  id: string;
-  location: string;
-  route: string;
-  date: string;
-  time: string;
-  status: 'confirmado' | 'pendiente';
-  image: string;
+interface AppointmentsProps {
+  currentTab: number;
 }
 
-// Mock data - replace with your actual data
-const appointments: Appointment[] = [
-  {
-    id: '1',
-    location: 'Bosque Protector',
-    route: 'Sendero Principal',
-    date: '01/05/2025',
-    time: '09:00',
-    status: 'confirmado',
-    image: 'https://picsum.photos/700',
-  },
-  {
-    id: '2',
-    location: 'Parque Natural',
-    route: 'Ruta del Río',
-    date: '02/05/2025',
-    time: '10:30',
-    status: 'pendiente',
-    image: 'https://picsum.photos/701',
-  },
-  {
-    id: '3',
-    location: 'Montaña Verde',
-    route: 'Sendero de Aventura',
-    date: '03/05/2025',
-    time: '08:00',
-    status: 'confirmado',
-    image: 'https://picsum.photos/702',
-  },
-];
-
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: AppointmentStatus) => {
   switch (status) {
-    case 'confirmado':
-      return '#4CAF50';
-    case 'pendiente':
-      return '#FFA000';
+    case AppointmentStatus.PENDING:
+      return "#FFA000";
+    case AppointmentStatus.CONFIRMED:
+      return "#4CAF50";
+    case AppointmentStatus.CANCELLED:
+      return "#F44336";
+    case AppointmentStatus.COMPLETED:
+      return "#4CAF50";
+    case AppointmentStatus.FINISHED:
+      return "#4CAF50";
     default:
-      return '#9E9E9E';
+      return "#9E9E9E";
   }
 };
 
 const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
   const router = useRouter();
   const [visible, setVisible] = React.useState(false);
-  const theme = useTheme();
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -74,22 +53,22 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
   return (
     <Surface style={styles.card} elevation={1}>
       <Card.Title
-        title={appointment.location}
-        subtitle={appointment.route}
-        left={(props) => (
-          <Avatar.Image 
-            size={48} 
-            source={{ uri: appointment.image }} 
+        title={appointment.route.name}
+        subtitle={appointment.route.organization.name}
+        left={() => (
+          <Avatar.Image
+            size={48}
+            source={{ uri: appointment.route.mainImage?.publicUrl }}
             style={styles.avatar}
           />
         )}
-        right={(props) => (
+        right={() => (
           <View style={styles.rightContent}>
-            <View 
+            <View
               style={[
-                styles.statusIndicator, 
-                { backgroundColor: getStatusColor(appointment.status) }
-              ]} 
+                styles.statusIndicator,
+                { backgroundColor: getStatusColor(appointment.status) },
+              ]}
             />
             <Menu
               visible={visible}
@@ -116,20 +95,45 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
       <View style={styles.dateTimeContainer}>
         <View style={styles.dateTimeItem}>
           <IconButton icon="calendar" size={20} />
-          <Text variant="bodySmall">{appointment.date}</Text>
+          <Text variant="bodySmall">{formatDate(appointment.eventDate)}</Text>
         </View>
         <View style={styles.dateTimeItem}>
           <IconButton icon="clock-outline" size={20} />
-          <Text variant="bodySmall">{appointment.time}</Text>
+          <Text variant="bodySmall">{formatTime(appointment.eventTimeInit)}</Text>
         </View>
       </View>
     </Surface>
   );
 };
 
-const Appoinments = () => {
+const Appoinments = ({ currentTab }: AppointmentsProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const appointments = useSelector(appointmentsSelector);
+  const loading = useSelector(loadingAppointmentsSelector);
+
+  console.log("currentTab", currentTab);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (currentTab === TAB_INDICES.APPOINTMENTS) {
+        dispatch(getAppointments());
+      }
+    }, [currentTab, dispatch])
+  );
+
+  //Fetch when tab changes to profile
+  React.useEffect(() => {
+    if (currentTab === TAB_INDICES.APPOINTMENTS) {
+      dispatch(getAppointments());
+    }
+  }, [currentTab, dispatch]);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
@@ -137,7 +141,7 @@ const Appoinments = () => {
       <Text variant="titleMedium" style={styles.title}>
         Agendamientos
       </Text>
-      {appointments.map((appointment) => (
+      {appointments?.map((appointment) => (
         <AppointmentCard key={appointment.id} appointment={appointment} />
       ))}
     </ScrollView>
@@ -160,14 +164,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   avatar: {
     marginRight: 8,
   },
   rightContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   statusIndicator: {
@@ -176,13 +180,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   dateTimeContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
   dateTimeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 16,
   },
 });
