@@ -9,12 +9,13 @@ import ExplorerReducer from '@/slices/explorerSlice';
 import AdminCompanyReducer from '@/slices/adminCompanySlice';
 import AdminCompanyRouteReducer from '@/slices/adminCompanyRouteSlice';
 import AdminCompanyGuideReducer from '@/slices/adminCompanyGuideSlice';
+import AdminCompanyAppointmentsReducer from '@/slices/adminCompanyAppoinmentsSlice';
 import { thunk } from 'redux-thunk';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany', 'adminCompanyRoute'],
+  whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany', 'adminCompanyRoute', 'adminCompanyGuide', 'adminCompanyAppointments'],
 };
 
 const persistedSessionReducer = persistReducer(persistConfig, SessionReducer);
@@ -25,6 +26,7 @@ const persistedExplorerReducer = persistReducer(persistConfig, ExplorerReducer);
 const persistedAdminCompanyReducer = persistReducer(persistConfig, AdminCompanyReducer);
 const persistedAdminCompanyRouteReducer = persistReducer(persistConfig, AdminCompanyRouteReducer);
 const persistedAdminCompanyGuideReducer = persistReducer(persistConfig, AdminCompanyGuideReducer);
+const persistedAdminCompanyAppointmentsReducer = persistReducer(persistConfig, AdminCompanyAppointmentsReducer);
 
 export const rootReducer = combineReducers({
     session: persistedSessionReducer,
@@ -35,6 +37,7 @@ export const rootReducer = combineReducers({
     adminCompany: persistedAdminCompanyReducer,
     adminCompanyRoute: persistedAdminCompanyRouteReducer,
     adminCompanyGuide: persistedAdminCompanyGuideReducer,
+    adminCompanyAppointments: persistedAdminCompanyAppointmentsReducer,
 })
 
 // Create store
