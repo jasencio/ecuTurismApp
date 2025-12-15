@@ -41,3 +41,5 @@ scripts
 .env
 
 eas.json
+android/
+.vscode/

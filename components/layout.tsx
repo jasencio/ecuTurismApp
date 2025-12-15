@@ -11,16 +11,25 @@ import CustomSafeAreaView from "./CustomSafeAreaView";
 import { useRouter } from "expo-router";
 // import { usePathname } from "expo-router";
 // import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { sessionDataSelector } from "@/selectors/sessionSelector";
+import { RoleType } from "@/types/Session";
+import { useDispatch } from "react-redux";
+import { fetchLogout } from "@/slices/loginSlice";
+import { AppDispatch } from "@/store";
+
 export interface Props {
   children: ReactNode;
   isHeaderAvailable?: boolean;
 }
 
 const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   // const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [active, setActive] = useState("home");
+  const sessionData = useSelector(sessionDataSelector);
 
   // Close drawer when clicking outside
   const handleOutsidePress = () => {
@@ -65,83 +74,101 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
           {/* Drawer Menu (Visible when open) */}
           {isDrawerOpen && (
             <View style={styles.drawerContainer}>
-              <Drawer.Section title="Administrador">
-                <Drawer.Item
-                  label="Usuarios"
-                  icon="account-multiple"
-                  active={active === "users"}
-                  onPress={() => {
-                    //setActive("users");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin/userList");
-                  }}
-                />
-                <Drawer.Item
-                  label="Organizaciones"
-                  icon="domain"
-                  active={active === "organizations"}
-                  onPress={() => {
-                    //setActive("organizations");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin/organization/organizationList");
-                  }}
-                />
-              </Drawer.Section>
-              <Drawer.Section title="Gestión de organización">
+
+
+
+              {sessionData?.roles.includes(RoleType.ADMIN_SYSTEM) && (<>
+                <Drawer.Section title="Administrador">
+                  <Drawer.Item
+                    label="Usuarios"
+                    icon="account-multiple"
+                    active={active === "users"}
+                    onPress={() => {
+                      //setActive("users");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin/userList");
+                    }}
+                  />
+                  <Drawer.Item
+                    label="Organizaciones"
+                    icon="domain"
+                    active={active === "organizations"}
+                    onPress={() => {
+                      //setActive("organizations");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin/organization/organizationList");
+                    }}
+                  />
+                </Drawer.Section>
+                <Drawer.Section title="Gestión de organización">
+                  <Drawer.Item
+                    label="Organización"
+                    icon="domain"
+                    active={active === "organizations"}
+                    onPress={() => {
+                      //setActive("organizations");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin_organization/organizationProfile");
+                    }}
+                  />
+                  <Drawer.Item
+                    label="Rutas"
+                    icon="compass"
+                    active={active === "routes"}
+                    onPress={() => {
+                      //setActive("routes");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin_organization/routeList");
+                    }}
+                  />
+
+                  <Drawer.Item
+                    label="Guías"
+                    icon="account-multiple"
+                    active={active === "guides"}
+                    onPress={() => {
+                      //setActive("guides");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin_organization/guideList");
+                    }}
+                  />
+                  <Drawer.Item
+                    label="Agendamientos"
+                    icon="calendar-blank-multiple"
+                    active={active === "scheduling"}
+                    onPress={() => {
+                      //setActive("scheduling");
+                      setIsDrawerOpen(false);
+                      router.push("/home/admin_organization/appoinmentList");
+                    }}
+                  />
+                </Drawer.Section>
+              </>
+              )}
+              {sessionData?.roles.includes(RoleType.TOURIST_GUIDE) && (<>
+                <Drawer.Section title="Guía">
+                  <Drawer.Item
+                    label="Asignaciones"
+                    icon="calendar-alert"
+                    active={active === "assignments"}
+                    onPress={() => {
+                      //setActive("assignments");
+                      setIsDrawerOpen(false);
+                      router.push("/home/guides/assignmentList");
+
+                    }}
+                  />
+                </Drawer.Section>
+              </>
+              )}
               <Drawer.Item
-                  label="Organización"
-                  icon="domain"
-                  active={active === "organizations"}
-                  onPress={() => {
-                    //setActive("organizations");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin_organization/organizationProfile");
-                  }}
-                />
-                <Drawer.Item
-                  label="Rutas"
-                  icon="compass"
-                  active={active === "routes"}
-                  onPress={() => {
-                    //setActive("routes");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin_organization/routeList");
-                  }}
-                />
-                <Drawer.Item
-                  label="Guías"
-                  icon="account-multiple"
-                  active={active === "guides"}
-                  onPress={() => {
-                    //setActive("guides");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin_organization/guideList");
-                  }}
-                />
-                <Drawer.Item
-                  label="Agendamientos"
-                  icon="calendar-blank-multiple"
-                  active={active === "scheduling"}
-                  onPress={() => {
-                    //setActive("scheduling");
-                    setIsDrawerOpen(false);
-                    router.push("/home/admin_organization/appoinmentList");
-                  }}
-                />
-              </Drawer.Section>
-              <Drawer.Section title="Guía">
-                <Drawer.Item
-                  label="Asignaciones"
-                  icon="calendar-alert"
-                  active={active === "assignments"}
-                  onPress={() => {
-                    //setActive("assignments");
-                    setIsDrawerOpen(false);
-                    router.push("/home/guides/assignmentList");
-                    
-                  }}
-                />
-              </Drawer.Section>
+                label="Cerrar sesión"
+                icon="logout"
+                onPress={() => {
+                  setIsDrawerOpen(false);
+                  dispatch(fetchLogout());
+                }}
+              />
             </View>
           )}
         </View>

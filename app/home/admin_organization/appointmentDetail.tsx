@@ -1,16 +1,20 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import LoadingScreen from "@/components/LoadingScreen";
+import GuideAssignmentModal from "@/components/GuideAssignmentModal";
 import { 
   currentAppointmentSelector, 
-  loadingCurrentAppointmentSelector 
+  loadingCurrentAppointmentSelector,
+  assigningGuideSelector,
+  errorAssigningGuideSelector,
+  successAssigningGuideSelector
 } from "@/selectors/adminCompanyAppoinmentsSelectors";
-import { getAppointment } from "@/slices/adminCompanyAppoinmentsSlice";
+import { getAppointment, assignGuideToAppointment, clearAssignGuideState } from "@/slices/adminCompanyAppoinmentsSlice";
 import { AppDispatch } from "@/store";
 import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
 import { AppointmentStatus } from "@/types/Appointment";
 import { formatDate, formatTime } from "@/utils/dateUtils";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Image, Dimensions, StyleSheet, ScrollView, View, Linking } from "react-native";
 import {
   Text,
@@ -21,6 +25,7 @@ import {
   Divider,
   Button,
   Avatar,
+  Snackbar,
 } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -67,10 +72,17 @@ const AppointmentDetail = () => {
   const dispatch = useDispatch<AppDispatch>();
   const appointment = useSelector(currentAppointmentSelector);
   const loadingAppointment = useSelector(loadingCurrentAppointmentSelector);
+  const assigningGuide = useSelector(assigningGuideSelector);
+  const errorAssigningGuide = useSelector(errorAssigningGuideSelector);
+  const successAssigningGuide = useSelector(successAssigningGuideSelector);
+  
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     navigation.setOptions({ title: appointment?.route?.name || "-"});
-}, [navigation, appointment]);
+  }, [navigation, appointment]);
 
   useEffect(() => {
     navigation.setOptions({ headerBackTitle: "Atrás" });
@@ -80,6 +92,35 @@ const AppointmentDetail = () => {
     if (!id) return;
     dispatch(getAppointment(id as string));
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (successAssigningGuide) {
+      setSnackbarMessage("Guía asignado exitosamente");
+      setSnackbarVisible(true);
+      setShowAssignModal(false);
+      dispatch(clearAssignGuideState());
+    }
+  }, [successAssigningGuide, dispatch]);
+
+  useEffect(() => {
+    if (errorAssigningGuide) {
+      setSnackbarMessage(errorAssigningGuide);
+      setSnackbarVisible(true);
+      dispatch(clearAssignGuideState());
+    }
+  }, [errorAssigningGuide, dispatch]);
+
+  const handleAssignGuide = (guide: any) => {
+    if (!appointment?.id) return;
+    dispatch(assignGuideToAppointment({
+      appointmentId: appointment.id,
+      guideId: guide.id
+    }));
+  };
+
+  const handleSnackbarDismiss = () => {
+    setSnackbarVisible(false);
+  };
 
   if (loadingAppointment) {
     return <LoadingScreen />;
@@ -108,14 +149,14 @@ const AppointmentDetail = () => {
   };
 
   const handleCallGuide = () => {
-    if (appointment.guide.phone) {
-      Linking.openURL(`tel:${appointment.guide.phone.replace(/\s/g, '')}`);
+    if (appointment.touristGuide.phone) {
+      Linking.openURL(`tel:${appointment.touristGuide.phone.replace(/\s/g, '')}`);
     }
   };
 
   const handleEmailGuide = () => {
-    if (appointment.guide.email) {
-      Linking.openURL(`mailto:${appointment.guide.email}`);
+    if (appointment.touristGuide.email) {
+      Linking.openURL(`mailto:${appointment.touristGuide.email}`);
     }
   };
 
@@ -213,62 +254,94 @@ const AppointmentDetail = () => {
         </Card>
 
         {/* Guide Information */}
-        {appointment?.guide && (
-        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={1}>
-          <Card.Content>
-            <View style={styles.sectionHeader}>
-              <IconButton icon="account-tie" size={24} iconColor={theme.colors.primary} />
-              <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-                Información del Guía
-              </Text>
-            </View>
-            
-            <View style={styles.userInfoContainer}>
-              <Avatar.Text
-                size={60}
-                label={appointment.guide.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-                style={styles.guideAvatar}
-              />
-              <View style={styles.userDetails}>
-                <Text variant="titleMedium" style={[styles.userName, { color: theme.colors.onSurface }]}>
-                  {appointment.guide.name}
+        {appointment?.touristGuide && (
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={1}>
+            <Card.Content>
+              <View style={styles.sectionHeader}>
+                <IconButton icon="account-tie" size={24} iconColor={theme.colors.primary} />
+                <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+                  Información del Guía
                 </Text>
-                <Text variant="bodyMedium" style={[styles.userEmail, { color: theme.colors.onSurfaceVariant }]}>
-                  {appointment.guide.email}
-                </Text>
-                {appointment.guide.phone && (
-                  <Text variant="bodyMedium" style={[styles.userPhone, { color: theme.colors.onSurfaceVariant }]}>
-                    {appointment.guide.phone}
-                  </Text>
-                )}
               </View>
-            </View>
+              
+              <View style={styles.userInfoContainer}>
+                <Avatar.Text
+                  size={60}
+                  label={appointment.touristGuide.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                  style={styles.guideAvatar}
+                />
+                <View style={styles.userDetails}>
+                  <Text variant="titleMedium" style={[styles.userName, { color: theme.colors.onSurface }]}>
+                    {appointment.touristGuide.name}
+                  </Text>
+                  <Text variant="bodyMedium" style={[styles.userEmail, { color: theme.colors.onSurfaceVariant }]}>
+                    {appointment.touristGuide.email}
+                  </Text>
+                  {appointment.touristGuide.phone && (
+                    <Text variant="bodyMedium" style={[styles.userPhone, { color: theme.colors.onSurfaceVariant }]}>
+                      {appointment.touristGuide.phone}
+                    </Text>
+                  )}
+                </View>
+              </View>
 
-            <View style={styles.contactButtons}>
-              {appointment.guide.phone && (
+              <View style={styles.contactButtons}>
+                {appointment.touristGuide.phone && (
+                  <Button
+                    mode="outlined"
+                    icon="phone"
+                    onPress={handleCallGuide}
+                    style={styles.contactButton}
+                  >
+                    Llamar
+                  </Button>
+                )}
                 <Button
                   mode="outlined"
-                  icon="phone"
-                  onPress={handleCallGuide}
+                  icon="email"
+                  onPress={handleEmailGuide}
                   style={styles.contactButton}
                 >
-                  Llamar
+                  Email
                 </Button>
-              )}
+              </View>
+            </Card.Content>
+          </Card>
+        )}
+
+        {/* Assign Guide Button */}
+        {appointment.status === AppointmentStatus.PENDING && (
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} elevation={1}>
+            <Card.Content>
+              <View style={styles.sectionHeader}>
+                <IconButton icon="account-plus" size={24} iconColor={theme.colors.primary} />
+                <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+                  Asignación de Guía
+                </Text>
+              </View>
+              
+              <Text variant="bodyMedium" style={[styles.assignText, { color: theme.colors.onSurfaceVariant }]}>
+                {appointment.touristGuide 
+                  ? "Este agendamiento ya tiene un guía asignado."
+                  : "Asigna un guía disponible para este agendamiento."
+                }
+              </Text>
+              
               <Button
-                mode="outlined"
-                icon="email"
-                onPress={handleEmailGuide}
-                style={styles.contactButton}
+                mode="contained"
+                icon={appointment.touristGuide ? "account-edit" : "account-plus"}
+                onPress={() => setShowAssignModal(true)}
+                style={styles.assignButton}
+                loading={assigningGuide}
+                disabled={assigningGuide}
               >
-                Email
+                {appointment.touristGuide ? "Cambiar Guía" : "Asignar Guía"}
               </Button>
-            </View>
-          </Card.Content>
-        </Card>
+            </Card.Content>
+          </Card>
         )}
 
         {/* Appointment Details */}
@@ -308,9 +381,9 @@ const AppointmentDetail = () => {
                     </Text>
                   </View>
                 </View>
-                </View>
-                
-                <View style={styles.detailRow}>
+              </View>
+              
+              <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
                   <IconButton
                     icon="clock"
@@ -481,6 +554,25 @@ const AppointmentDetail = () => {
           </Card.Content>
         </Card>
       </ScrollView>
+
+      {/* Guide Assignment Modal */}
+      <GuideAssignmentModal
+        visible={showAssignModal}
+        onDismiss={() => setShowAssignModal(false)}
+        onAssignGuide={handleAssignGuide}
+        currentGuideId={appointment.touristGuide?.id}
+        loading={assigningGuide}
+      />
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={handleSnackbarDismiss}
+        duration={3000}
+        style={styles.snackbar}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </CustomSafeAreaView>
   );
 };
@@ -582,6 +674,13 @@ const styles = StyleSheet.create({
   contactButton: {
     flex: 1,
   },
+  assignText: {
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  assignButton: {
+    width: '100%',
+  },
   detailsGrid: {
     gap: 16,
   },
@@ -626,6 +725,9 @@ const styles = StyleSheet.create({
   },
   timestampLabel: {
     fontWeight: "500",
+  },
+  snackbar: {
+    marginBottom: 16,
   },
 });
 

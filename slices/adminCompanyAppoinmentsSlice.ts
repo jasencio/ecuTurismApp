@@ -9,6 +9,9 @@ interface AdminCompanyAppointmentsState {
   currentAppointment: Appointment | null;
   loadingCurrentAppointment: boolean;
   errorCurrentAppointment: string | null;
+  assigningGuide: boolean;
+  errorAssigningGuide: string | null;
+  successAssigningGuide: boolean;
 }
 
 const initialState: AdminCompanyAppointmentsState = {
@@ -18,6 +21,9 @@ const initialState: AdminCompanyAppointmentsState = {
   currentAppointment: null,
   loadingCurrentAppointment: false,
   errorCurrentAppointment: null,
+  assigningGuide: false,
+  errorAssigningGuide: null,
+  successAssigningGuide: false,
 };
 
 export const getAppointments = createAsyncThunk(
@@ -29,7 +35,7 @@ export const getAppointments = createAsyncThunk(
       );
       return response?.data;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue("Error al obtener los citas");
+      return thunkAPI.rejectWithValue("Error al obtener las citas");
     }
   }
 );
@@ -48,10 +54,29 @@ export const getAppointment = createAsyncThunk(
   }
 );
 
+export const assignGuideToAppointment = createAsyncThunk(
+  "adminCompanyAppointments/assignGuide",
+  async ({ appointmentId, guideId }: { appointmentId: string; guideId: string }, thunkAPI) => {
+    try {
+      const response = await axiosInstance.patch<Appointment>(
+        `admin-company/appointments/${appointmentId}/assign-guide/${guideId}`);
+      return response?.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue("Error al asignar el guía");
+    }
+  }
+);
+
 const adminCompanyAppointmentsSlice = createSlice({
   name: "adminCompanyAppointments",
   initialState,
-  reducers: {},
+  reducers: {
+    clearAssignGuideState: (state) => {
+      state.assigningGuide = false;
+      state.errorAssigningGuide = null;
+      state.successAssigningGuide = false;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getAppointments.pending, (state) => {
@@ -78,8 +103,24 @@ const adminCompanyAppointmentsSlice = createSlice({
       .addCase(getAppointment.rejected, (state, action) => {
         state.loadingCurrentAppointment = false;
         state.errorCurrentAppointment = action?.error?.message || "Error al obtener la cita";
+      })
+      .addCase(assignGuideToAppointment.pending, (state) => {
+        state.assigningGuide = true;
+        state.errorAssigningGuide = null;
+        state.successAssigningGuide = false;
+      })
+      .addCase(assignGuideToAppointment.fulfilled, (state, action) => {
+        state.assigningGuide = false;
+        state.currentAppointment = action.payload;
+        state.successAssigningGuide = true;
+      })
+      .addCase(assignGuideToAppointment.rejected, (state, action) => {
+        state.assigningGuide = false;
+        state.errorAssigningGuide = action?.error?.message || "Error al asignar el guía";
+        state.successAssigningGuide = false;
       });
   },
 });
 
+export const { clearAssignGuideState } = adminCompanyAppointmentsSlice.actions;
 export default adminCompanyAppointmentsSlice.reducer;

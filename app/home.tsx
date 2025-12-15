@@ -5,8 +5,12 @@ import Profile from "@/screens/profile";
 import React from "react";
 import { BottomNavigation, useTheme } from "react-native-paper";
 import { TAB_INDICES } from "@/constants/tabs";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { useSelector } from "react-redux";
+import { loadingSelector } from "@/selectors/sessionSelector";
 
 const HomePage = () => {
+  const isLoading = useSelector(loadingSelector);
   const theme = useTheme();
   const [index, setIndex] = React.useState(TAB_INDICES.LOCATIONS);
   const [routes] = React.useState([
@@ -16,11 +20,11 @@ const HomePage = () => {
       unfocusedIcon: "calendar-outline",
       title: undefined,
     },
-    { 
-      key: "locations", 
-      focusedIcon: "compass", 
+    {
+      key: "locations",
+      focusedIcon: "compass",
       unfocusedIcon: "compass-outline",
-      title: undefined 
+      title: undefined
     },
     {
       key: "profile",
@@ -38,11 +42,12 @@ const HomePage = () => {
 
   return (
     <Layout>
+      <LoadingOverlay visible={isLoading} message="Espere..." />
       <BottomNavigation
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
-        barStyle={{ 
+        barStyle={{
           height: 60,
           backgroundColor: '#FFFFFF',
           elevation: 8,

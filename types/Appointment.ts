@@ -12,7 +12,7 @@ export enum AppointmentStatus {
 export interface Appointment {
   id: string;
   tourist: User;
-  guide: User;
+  touristGuide: User;
   route: Route;
   groupSize: number;
   eventDate: string;

@@ -176,7 +176,7 @@ const LoginScreen = () => {
         <Text>{"¿No tienes una cuenta? "}</Text>
         <TouchableOpacity
           onPress={() => {
-            router.push("/signup");
+            router.replace("/signup");
           }}
         >
           <Text style={{ color: "#007AFF", fontWeight: "bold" }}>

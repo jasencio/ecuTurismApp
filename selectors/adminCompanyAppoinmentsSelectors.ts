@@ -10,3 +10,7 @@ export const errorAppointmentsSelector = createSelector(adminCompanyAppointments
 export const currentAppointmentSelector = createSelector(adminCompanyAppointmentsState, (state) => state.currentAppointment);
 export const loadingCurrentAppointmentSelector = createSelector(adminCompanyAppointmentsState, (state) => state.loadingCurrentAppointment);
 export const errorCurrentAppointmentSelector = createSelector(adminCompanyAppointmentsState, (state) => state.errorCurrentAppointment);
+
+export const assigningGuideSelector = createSelector(adminCompanyAppointmentsState, (state) => state.assigningGuide);
+export const errorAssigningGuideSelector = createSelector(adminCompanyAppointmentsState, (state) => state.errorAssigningGuide);
+export const successAssigningGuideSelector = createSelector(adminCompanyAppointmentsState, (state) => state.successAssigningGuide);
