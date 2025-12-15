@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ExploreNatureApp",
-    "slug": "ExploreNatureApp",
-    "version": "1.0.0",
+    "name": "EcuGoExplore",
+    "slug": "ecugoexplore",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,7 +16,17 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.clover.exploreNature"
+      "package": "com.ecugoexplore.app",
+      "targetSdkVersion": 35,
+      "compileSdkVersion": 35,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -26,6 +36,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "La aplicación necesita acceso a tus fotos para compartir imágenes.",
+          "cameraPermission": "La aplicación necesita acceso a tu cámara para tomar fotos.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -34,7 +52,16 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -44,8 +71,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "469800ef-57b6-4055-962d-b885de20f156"
+        "projectId": "e37fb091-a02e-4ee8-b1ce-d1dbd6847fbb"
       }
     }
-  }
+  },
+  "owner": "asenciojav42"
 }
