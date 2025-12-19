@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableWithoutFeedback } from "react-native";
 import {
   Avatar,
   Card,
@@ -55,68 +55,70 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
   const closeMenu = () => setVisible(false);
 
   return (
-    <Surface style={styles.card} elevation={1}>
-      <Card.Title
-        title={appointment.route.name}
-        subtitle={appointment.route.organization.name}
-        left={() => (
-          <Avatar.Image
-            size={48}
-            source={{ uri: appointment.route.mainImage?.publicUrl }}
-            style={styles.avatar}
-          />
-        )}
-        right={() => (
-          <View style={styles.rightContent}>
-            <View
-              style={[
-                styles.statusIndicator,
-                { backgroundColor: getStatusColor(appointment.status) },
-              ]}
+    <TouchableWithoutFeedback>
+      <Surface style={styles.card} elevation={1}>
+        <Card.Title
+          title={appointment.route.name}
+          subtitle={appointment.route.organization.name}
+          left={() => (
+            <Avatar.Image
+              size={48}
+              source={{ uri: appointment.route.mainImage?.publicUrl }}
+              style={styles.avatar}
             />
-            <Menu
-              visible={visible}
-              onDismiss={closeMenu}
-              anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
-            >
-              <Menu.Item
-                onPress={() => {
-                  closeMenu();
-                  router.navigate({
-                    pathname: "/home/explorer/appointment/appointmentDetail",
-                    params: { id: appointment.id },
-                  });
-                }}
-                title="Ver detalles"
-                leadingIcon="eye"
+          )}
+          right={() => (
+            <View style={styles.rightContent}>
+              <View
+                style={[
+                  styles.statusIndicator,
+                  { backgroundColor: getStatusColor(appointment.status) },
+                ]}
               />
-              {appointment.status === AppointmentStatus.PENDING && (
+              <Menu
+                visible={visible}
+                onDismiss={closeMenu}
+                anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
+              >
                 <Menu.Item
                   onPress={() => {
                     closeMenu();
-                    dispatch(cancelAppointment(appointment.id));
+                    router.navigate({
+                      pathname: "/home/explorer/appointment/appointmentDetail",
+                      params: { id: appointment.id },
+                    });
                   }}
-                  title="Cancelar"
-                  leadingIcon="close-circle"
+                  title="Ver detalles"
+                  leadingIcon="eye"
                 />
-              )}
-            </Menu>
+                {appointment.status === AppointmentStatus.PENDING && (
+                  <Menu.Item
+                    onPress={() => {
+                      closeMenu();
+                      dispatch(cancelAppointment(appointment.id));
+                    }}
+                    title="Cancelar"
+                    leadingIcon="close-circle"
+                  />
+                )}
+              </Menu>
+            </View>
+          )}
+        />
+        <View style={styles.dateTimeContainer}>
+          <View style={styles.dateTimeItem}>
+            <IconButton icon="calendar" size={20} />
+            <Text variant="bodySmall">{formatDate(appointment.eventDate)}</Text>
           </View>
-        )}
-      />
-      <View style={styles.dateTimeContainer}>
-        <View style={styles.dateTimeItem}>
-          <IconButton icon="calendar" size={20} />
-          <Text variant="bodySmall">{formatDate(appointment.eventDate)}</Text>
+          <View style={styles.dateTimeItem}>
+            <IconButton icon="clock-outline" size={20} />
+            <Text variant="bodySmall">
+              {formatTime(appointment.eventTimeInit)}
+            </Text>
+          </View>
         </View>
-        <View style={styles.dateTimeItem}>
-          <IconButton icon="clock-outline" size={20} />
-          <Text variant="bodySmall">
-            {formatTime(appointment.eventTimeInit)}
-          </Text>
-        </View>
-      </View>
-    </Surface>
+      </Surface>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -153,14 +155,14 @@ const Appoinments = ({ currentTab }: AppointmentsProps) => {
   }
 
   return (
-    <>
+    <View style={styles.container}>
       <LoadingOverlay
         visible={cancelling}
         message="Cancelando agendamiento..."
       />
       <ScrollView
-        style={styles.container}
         contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Text variant="titleMedium" style={styles.title}>
@@ -170,13 +172,14 @@ const Appoinments = ({ currentTab }: AppointmentsProps) => {
           <AppointmentCard key={appointment.id} appointment={appointment} />
         ))}
       </ScrollView>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   contentContainer: {
     paddingBottom: 16,
@@ -191,6 +194,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     overflow: "hidden",
+    backgroundColor: "white",
   },
   avatar: {
     marginRight: 8,

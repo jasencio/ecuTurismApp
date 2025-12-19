@@ -8,10 +8,16 @@ import { useSelector } from "react-redux";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { useEffect } from "react";
 
+import { setAuthHeader } from "@/utils/axiosInstance";
+
 function AppContent() {
   const sessionData = useSelector(sessionDataSelector);
 
   useEffect(() => {
+    if (sessionData && sessionData.token) {
+      setAuthHeader(sessionData.token);
+    }
+
     if (!sessionData) {
       router.replace("/");
     }
@@ -19,21 +25,21 @@ function AppContent() {
 
   return (
     <Stack>
-      <Stack.Screen 
-        name="index" 
-        options={{ 
+      <Stack.Screen
+        name="index"
+        options={{
           headerShown: false,
           gestureEnabled: false,
           animation: 'none'
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="home" 
-        options={{ 
+      <Stack.Screen
+        name="home"
+        options={{
           headerShown: false,
           gestureEnabled: false,
           animation: 'none'
-        }} 
+        }}
       />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
       <Stack.Screen

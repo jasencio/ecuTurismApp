@@ -18,31 +18,23 @@ const persistConfig = {
   whitelist: ['session', 'profile', 'users', 'organizations', 'adminCompany', 'adminCompanyRoute', 'adminCompanyGuide', 'adminCompanyAppointments'],
 };
 
-const persistedSessionReducer = persistReducer(persistConfig, SessionReducer);
-const persistedProfileReducer = persistReducer(persistConfig, ProfileReducer);
-const persistedUsersReducer = persistReducer(persistConfig, UsersReducer);
-const persistedOrganizationsReducer = persistReducer(persistConfig, OrganizationsReducer);
-const persistedExplorerReducer = persistReducer(persistConfig, ExplorerReducer);
-const persistedAdminCompanyReducer = persistReducer(persistConfig, AdminCompanyReducer);
-const persistedAdminCompanyRouteReducer = persistReducer(persistConfig, AdminCompanyRouteReducer);
-const persistedAdminCompanyGuideReducer = persistReducer(persistConfig, AdminCompanyGuideReducer);
-const persistedAdminCompanyAppointmentsReducer = persistReducer(persistConfig, AdminCompanyAppointmentsReducer);
-
 export const rootReducer = combineReducers({
-    session: persistedSessionReducer,
-    profile: persistedProfileReducer,
-    users: persistedUsersReducer,
-    organizations: persistedOrganizationsReducer,
-    explorer: persistedExplorerReducer,
-    adminCompany: persistedAdminCompanyReducer,
-    adminCompanyRoute: persistedAdminCompanyRouteReducer,
-    adminCompanyGuide: persistedAdminCompanyGuideReducer,
-    adminCompanyAppointments: persistedAdminCompanyAppointmentsReducer,
-})
+  session: SessionReducer,
+  profile: ProfileReducer,
+  users: UsersReducer,
+  organizations: OrganizationsReducer,
+  explorer: ExplorerReducer,
+  adminCompany: AdminCompanyReducer,
+  adminCompanyRoute: AdminCompanyRouteReducer,
+  adminCompanyGuide: AdminCompanyGuideReducer,
+  adminCompanyAppointments: AdminCompanyAppointmentsReducer,
+});
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 // Create store
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

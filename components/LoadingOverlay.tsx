@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import { Portal } from 'react-native-paper';
 

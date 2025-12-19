@@ -1,30 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import LottieAnimation from './LottieAnimation';
+import { Environtments } from '@/types/Environtments';
 
 interface LoadingScreenProps {
   message?: string;
   fullScreen?: boolean;
   animationSource?: any;
 }
-
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
-  message = "Cargando...", 
+const environment = process.env.EXPO_PUBLIC_ENVIRONMENT;
+const LoadingScreen: React.FC<LoadingScreenProps> = ({
   fullScreen = true,
   animationSource
 }) => {
-  // Default blinking tree animation if none provided
-  const defaultAnimation = require('../assets/animations/nature-loading.json');
-  
+
+  const finalSource = animationSource || require('../assets/animations/nature-loading.json');
+
   return (
     <View style={[styles.container, fullScreen && styles.fullScreen]}>
-      <LottieAnimation
-        source={animationSource || defaultAnimation}
-        width={120}
-        height={120}
-      />
-      <Text style={styles.message}>{message}</Text>
+      {environment === Environtments.DEVELOPMENT
+        ? <Text>Cargando...</Text> :
+        <LottieAnimation
+          source={finalSource}
+          width={120}
+          height={120}
+          autoPlay
+          loop
+        />
+      }
     </View>
   );
 };

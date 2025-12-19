@@ -18,12 +18,15 @@ import { useDispatch } from "react-redux";
 import { fetchLogout } from "@/slices/loginSlice";
 import { AppDispatch } from "@/store";
 
+import { Edges } from "react-native-safe-area-context";
+
 export interface Props {
   children: ReactNode;
   isHeaderAvailable?: boolean;
+  safeAreaEdges?: Edges;
 }
 
-const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
+const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true, safeAreaEdges }) => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   // const pathname = usePathname();
@@ -49,7 +52,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
   // }, [pathname]);
 
   return (
-    <CustomSafeAreaView>
+    <CustomSafeAreaView edges={safeAreaEdges}>
       {/* Detects outside taps, but allows scrolling inside children */}
       <TouchableWithoutFeedback onPress={handleOutsidePress} accessible={false}>
         <View style={styles.container}>
@@ -57,12 +60,13 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
           {isHeaderAvailable && (
             <Appbar.Header
               statusBarHeight={Platform.OS === "ios" ? 0 : undefined}
+              style={styles.header}
             >
               <Appbar.Action
                 icon="menu"
                 onPress={() => setIsDrawerOpen(!isDrawerOpen)}
               />
-              <Appbar.Content title="Explore Nature" />
+              <Appbar.Content title="EcuGoExplore" />
             </Appbar.Header>
           )}
           {/* Ensures children can scroll while keeping touch detection */}
@@ -180,6 +184,7 @@ const Layout: React.FC<Props> = ({ children, isHeaderAvailable = true }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
   },
   content: {
     flex: 1, // Allows children to expand & scroll properly
@@ -202,6 +207,9 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "rgba(0, 0, 0, 0.3)", // Semi-transparent background
     zIndex: 1,
+  },
+  header: {
+    backgroundColor: "white",
   },
 });
 

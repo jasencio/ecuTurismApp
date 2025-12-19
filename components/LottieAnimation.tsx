@@ -21,6 +21,8 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   width = 200,
   height = 200,
 }) => {
+  if (!source) return null;
+
   return (
     <View style={[styles.container, style]}>
       <LottieView

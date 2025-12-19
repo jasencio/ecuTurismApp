@@ -1,6 +1,6 @@
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 import { List, Text, useTheme } from "react-native-paper";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -65,38 +65,38 @@ const UserList = () => {
         visible={isLoadingUsersList}
         message="Cargando usuarios..."
       />
-      <List.Section>
-        {usersList?.map((user: User) => {
-          return (
-            <List.Item
-              key={user.id}
-              title={user.name}
-              description={
-                <View style={styles.descriptionContainer}>
-                  <Text style={styles.emailText}>{user.email}</Text>
-                  <View style={styles.rolesContainer}>
-                    {user?.roles?.map((role, index) => (
-                      <View
-                        key={index}
-                        style={[
-                          styles.roleContainer,
-                          { backgroundColor: getRoleColor(role) },
-                        ]}
-                      >
-                        <Text style={styles.roleText}>{roleDisplayNames[role]}</Text>
-                      </View>
-                    ))}
-                  </View>
+      <FlatList<User>
+        data={usersList || []}
+        keyExtractor={(user) => user.id}
+        renderItem={({ item: user }) => (
+          <List.Item
+            title={user.name}
+            description={
+              <View style={styles.descriptionContainer}>
+                <Text style={styles.emailText}>{user.email}</Text>
+                <View style={styles.rolesContainer}>
+                  {user?.roles?.map((role: UserRole, index: number) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.roleContainer,
+                        { backgroundColor: getRoleColor(role) },
+                      ]}
+                    >
+                      <Text style={styles.roleText}>{roleDisplayNames[role]}</Text>
+                    </View>
+                  ))}
                 </View>
-              }
-              left={(props) => <List.Icon {...props} icon="account" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              style={styles.listItem}
-              onPress={() => handleUserPress(user.id)}
-            />
-          );
-        })}
-      </List.Section>
+              </View>
+            }
+            left={(props) => <List.Icon {...props} icon="account" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            style={styles.listItem}
+            onPress={() => handleUserPress(user.id)}
+          />
+        )}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </CustomSafeAreaView>
   );
 };
