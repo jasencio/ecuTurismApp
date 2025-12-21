@@ -38,7 +38,7 @@ const CustomCard = ({ organization }: LocationCardProps) => {
 
   return (
     <TouchableWithoutFeedback
-      onPress={() => router.push("/home/explorer/route/routeList")}
+      onPress={() => handleViewDetail}
     >
       <Card style={styles.card} mode="elevated">
         <Card.Cover source={{ uri: publicUrl }} style={styles.cardImage} />

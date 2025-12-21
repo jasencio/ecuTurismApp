@@ -2,8 +2,8 @@ import { router, Stack } from "expo-router";
 import { Provider } from "react-redux";
 import store, { persistor } from "@/store";
 import { PaperProvider } from "react-native-paper";
-import { DefaultTheme } from 'react-native-paper';
 import { PersistGate } from 'redux-persist/integration/react';
+import appTheme from '@/constants/theme';
 import { useSelector } from "react-redux";
 import { sessionDataSelector } from "@/selectors/sessionSelector";
 import { useEffect } from "react";
@@ -78,18 +78,8 @@ function AppContent() {
 }
 
 export default function RootLayout() {
-  const theme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: '#6200ee',
-      accent: '#03dac4',
-      background: "white"
-    },
-  };
-
   return (
-    <PaperProvider theme={theme}>
+    <PaperProvider theme={appTheme}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor} onBeforeLift={() => {
           console.log('PersistGate: Before lift');
