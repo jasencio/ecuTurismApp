@@ -105,6 +105,8 @@ export const sessionSlice = createSlice({
       })
       .addCase(fetchLogout.rejected, (state, action) => {
         state.loading = false;
+        state.sessionData = undefined;
+        setAuthHeader(null);
         state.error = action.error.message || "Something went wrong";
       });
   },
