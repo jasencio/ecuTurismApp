@@ -168,7 +168,13 @@ export const cancelAppointment = createAsyncThunk(
 export const explorerSlice = createSlice({
   name: "explorer",
   initialState,
-  reducers: {},
+  reducers: {
+    resetAppointment: (state) => {
+      state.appointment = null;
+      state.loadingAppointment = false;
+      state.errorAppointment = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Fetch Organizations List
@@ -247,7 +253,7 @@ export const explorerSlice = createSlice({
       })
       // Get Appointments
       .addCase(getAppointments.pending, (state) => {
-        state.successCancellingAppointment = false;state.loadingAppointments = true;
+        state.successCancellingAppointment = false; state.loadingAppointments = true;
         state.appointments = undefined;
         state.error = null;
       })
@@ -297,3 +303,5 @@ export const explorerSlice = createSlice({
 });
 
 export default explorerSlice.reducer;
+
+export const { resetAppointment } = explorerSlice.actions;

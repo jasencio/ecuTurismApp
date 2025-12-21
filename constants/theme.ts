@@ -10,7 +10,7 @@ const appTheme = {
         tertiary: '#4CAF50', // Light Green accent
         background: '#FFFFFF',
         surface: '#FFFFFF',
-        surfaceVariant: '#F5F5F5',
+        surfaceVariant: '#F8F6F0', // Subtle warm beige for cards
         onPrimary: '#FFFFFF',
         onSecondary: '#FFFFFF',
         onBackground: '#1C1B1F',

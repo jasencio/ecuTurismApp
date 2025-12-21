@@ -48,7 +48,9 @@ export default function AppointmentCreate() {
   });
 
   useEffect(() => {
-    navigation.setOptions({ headerBackTitle: "Atrás", title: route?.name || "-" });
+    navigation.setOptions({
+      title: route?.name || "-",
+    });
   }, [navigation, route]);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function AppointmentCreate() {
 
     // Split the time range into start and end times
     const [startTimeStr, endTimeStr] = data.time.split('-');
-    
+
     const appointmentData = {
       routeId: route.id,
       eventDate: data.date,
@@ -168,7 +170,7 @@ export default function AppointmentCreate() {
                 control={control}
                 name="date"
                 render={({ field: { onChange, value } }) => (
-                  <CustomCalendar 
+                  <CustomCalendar
                     daysWeekEnabled={route?.organization?.daysWeekEnabled || []}
                     timeOpenWeek={route?.organization?.timeOpenWeek}
                     timeCloseWeek={route?.organization?.timeCloseWeek}

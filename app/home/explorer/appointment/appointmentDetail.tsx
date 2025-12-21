@@ -6,7 +6,7 @@ import { AppDispatch } from "@/store";
 import { getDifficultyTranslation, getDifficultyColor } from "@/types/Route";
 import { AppointmentStatus } from "@/types/Appointment";
 import { formatDate, formatTime } from "@/utils/dateUtils";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Image, Dimensions, StyleSheet, ScrollView, View } from "react-native";
 import {
@@ -16,8 +16,10 @@ import {
   IconButton,
   Surface,
   Divider,
+  Button
 } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
+import { resetAppointment } from "@/slices/explorerSlice";
 
 const { height } = Dimensions.get("window");
 
@@ -62,9 +64,12 @@ export default function AppointmentDetail() {
   const dispatch = useDispatch<AppDispatch>();
   const appointment = useSelector(appointmentSelector);
   const loadingAppointment = useSelector(loadingAppointmentSelector);
+  const router = useRouter();
 
   useEffect(() => {
-    navigation.setOptions({ headerBackTitle: "Atras" });
+    navigation.setOptions({
+      headerBackVisible: false
+    });
   }, [navigation]);
 
   useEffect(() => {
@@ -74,6 +79,11 @@ export default function AppointmentDetail() {
 
   if (loadingAppointment) {
     return <LoadingScreen />;
+  }
+
+  function closeAppointment() {
+    router.replace("/");
+    dispatch(resetAppointment());
   }
 
   const InfoSection = ({
@@ -328,12 +338,29 @@ export default function AppointmentDetail() {
             </View>
           </Card.Content>
         </Card>
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={() => closeAppointment()}
+            style={styles.button}
+          >
+            Cerrar
+          </Button>
+        </View>
       </ScrollView>
     </CustomSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    marginHorizontal: 16,
+    marginVertical: 16,
+    alignItems: "center",
+  },
+  button: {
+    width: "100%",
+  },
   imageContainer: {
     position: "relative",
     height: height * 0.25,
